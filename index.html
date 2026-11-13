@@ -161,6 +161,7 @@
             position: relative;
         }
 
+        .close-btn { position: absolute; top: 12px; right: 18px; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); }
         input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border-radius: 6px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; }
         
         .profile-preview { display: flex; align-items: center; gap: 12px; background: #1c1c1c; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2a2a2a; }
@@ -207,6 +208,23 @@
     <div id="demonList"></div>
 </div>
 
+<!-- Modal para Iniciar Sesión con Correo y Contraseña Directa -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+        <h2 id="t-loginmodaltitle" style="margin-top:0;">Iniciar Sesión</h2>
+        <form id="emailLoginForm">
+            <label id="t-emaillabel">Correo electrónico:</label>
+            <input type="email" id="loginEmail" required placeholder="tucorreo@gmail.com">
+
+            <label id="t-passlabel">Contraseña:</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••">
+
+            <button type="submit" class="btn" id="t-loginbtnsubmit" style="width:100%; margin-top:10px;">Entrar</button>
+        </form>
+    </div>
+</div>
+
 <!-- Modal para Crear / Editar Perfil Online -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
@@ -243,9 +261,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { 
         getAuth, 
-        GoogleAuthProvider, 
-        signInWithRedirect, 
-        getRedirectResult, 
+        signInWithEmailAndPassword, 
         setPersistence, 
         browserLocalPersistence, 
         signOut, 
@@ -266,25 +282,10 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
     
-    provider.addScope('email');
-    provider.addScope('profile');
-    provider.setCustomParameters({ prompt: 'select_account' });
-
     // Mantener la sesión guardada permanentemente en el dispositivo
     setPersistence(auth, browserLocalPersistence).catch((err) => {
         console.error("Error de persistencia:", err);
-    });
-
-    // Procesar el resultado al regresar de la redirección de Google
-    getRedirectResult(auth).catch((error) => {
-        if (error.code && error.code !== 'auth/null-user') {
-            console.error("Error en redirección de Google:", error);
-            if (error.code === 'auth/unauthorized-domain') {
-                alert("Error: Debes añadir este dominio (" + window.location.hostname + ") en Firebase Console -> Authentication -> Settings -> Authorized domains.");
-            }
-        }
     });
 
     const ADMIN_EMAIL = "geometrygamer720z@gmail.com";
@@ -297,6 +298,10 @@
             logout: "Salir",
             admintitle: "Panel de Administrador",
             addbtn: "Añadir Nivel a la Lista",
+            loginmodaltitle: "Iniciar Sesión",
+            emaillabel: "Correo electrónico:",
+            passlabel: "Contraseña:",
+            loginbtnsubmit: "Entrar",
             profiletitle: "Configura tu Perfil",
             profilename: "Tu Nombre de Usuario en GD:",
             profiletype: "Elige qué deseas usar (Opcional):",
@@ -316,6 +321,10 @@
             logout: "Log out",
             admintitle: "Admin Panel",
             addbtn: "Add Level to List",
+            loginmodaltitle: "Sign In",
+            emaillabel: "Email address:",
+            passlabel: "Password:",
+            loginbtnsubmit: "Enter",
             profiletitle: "Configure Profile",
             profilename: "Your GD Username:",
             profiletype: "Choose what to use (Optional):",
@@ -335,6 +344,10 @@
             logout: "Выйти",
             admintitle: "Панель администратора",
             addbtn: "Добавить уровень",
+            loginmodaltitle: "Вход",
+            emaillabel: "Эл. почта:",
+            passlabel: "Пароль:",
+            loginbtnsubmit: "Войти",
             profiletitle: "Настройка профиля",
             profilename: "Ваш ник в GD:",
             profiletype: "Выберите стиль (Необязательно):",
@@ -360,6 +373,10 @@
         document.getElementById('t-title').innerText = translations[lang].title;
         document.getElementById('t-admintitle').innerText = translations[lang].admintitle;
         document.getElementById('t-addbtn').innerText = translations[lang].addbtn;
+        document.getElementById('t-loginmodaltitle').innerText = translations[lang].loginmodaltitle;
+        document.getElementById('t-emaillabel').innerText = translations[lang].emaillabel;
+        document.getElementById('t-passlabel').innerText = translations[lang].passlabel;
+        document.getElementById('t-loginbtnsubmit').innerText = translations[lang].loginbtnsubmit;
         document.getElementById('t-profiletitle').innerText = translations[lang].profiletitle;
         document.getElementById('t-profilename').innerText = translations[lang].profilename;
         document.getElementById('t-profiletype').innerText = translations[lang].profiletype;
@@ -392,18 +409,40 @@
         particleContainer.appendChild(p);
     }
 
-    // Método de inicio de sesión por Redirección (evita que se abra YouTube o falle en móviles)
-    const triggerGoogleLogin = async () => {
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            await signInWithRedirect(auth, provider);
-        } catch (error) {
-            console.error("Error en redirección:", error);
-            alert("Error al iniciar sesión: " + error.message);
-        }
+    // Abrir modal de inicio de sesión con correo y contraseña
+    window.openLoginModal = () => {
+        document.getElementById('loginModal').style.display = 'flex';
+        // Autocompletar automáticamente tu correo de admin si lo deseas, o dejarlo libre
+        document.getElementById('loginEmail').value = ADMIN_EMAIL;
     };
 
-    document.getElementById('loginBtn').onclick = triggerGoogleLogin;
+    window.closeLoginModal = () => {
+        document.getElementById('loginModal').style.display = 'none';
+    };
+
+    document.getElementById('loginBtn').onclick = openLoginModal;
+
+    // Manejar el envío del formulario de correo y contraseña
+    document.getElementById('emailLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            closeLoginModal();
+            document.getElementById('emailLoginForm').reset();
+        } catch (error) {
+            console.error("Error de autenticación:", error.code);
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                alert("Contraseña incorrecta o correo no registrado.");
+            } else if (error.code === 'auth/invalid-email') {
+                alert("El correo electrónico no es válido.");
+            } else {
+                alert("Error al iniciar sesión: " + error.message);
+            }
+        }
+    });
 
     onAuthStateChanged(auth, async (user) => {
         const authContainer = document.getElementById('authContainer');
@@ -417,7 +456,7 @@
 
                 if (!userSnap.exists()) {
                     document.getElementById('profileModal').style.display = 'flex';
-                    document.getElementById('profileName').value = user.displayName || "";
+                    document.getElementById('profileName').value = user.displayName || user.email.split('@')[0];
                 } else {
                     userData = userSnap.data();
                 }
@@ -427,7 +466,7 @@
 
             const displayName = userData ? userData.name : (user.displayName || user.email.split('@')[0]);
 
-            let avatarHtml = `<img src="${user.photoURL || ''}" class="avatar-circle" onerror="this.style.display='none'">`;
+            let avatarHtml = `<div class="gd-cube-preview" style="background:#00d2ff; color:#ffffff;">GD</div>`;
             if (userData) {
                 if (userData.type === 'icons') {
                     avatarHtml = `<div class="gd-cube-preview" style="background:${userData.color1}; color:${userData.color2};">GD</div>`;
@@ -454,7 +493,7 @@
             }
         } else {
             authContainer.innerHTML = `<button class="btn" id="loginBtn">${translations[currentLang].login}</button>`;
-            document.getElementById('loginBtn').onclick = triggerGoogleLogin;
+            document.getElementById('loginBtn').onclick = openLoginModal;
             adminPanel.style.display = 'none';
         }
     });
@@ -474,7 +513,7 @@
         const user = auth.currentUser;
         if (!user) return;
 
-        const name = document.getElementById('profileName.value') || document.getElementById('profileName').value;
+        const name = document.getElementById('profileName').value;
         const type = document.getElementById('profileType').value;
         let profileData = { name, type };
 
@@ -482,7 +521,7 @@
             profileData.color1 = document.getElementById('color1').value;
             profileData.color2 = document.getElementById('color2').value;
         } else {
-            profileData.imageUrl = document.getElementById('imageUrl').value || user.photoURL;
+            profileData.imageUrl = document.getElementById('imageUrl').value || '';
         }
 
         await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
