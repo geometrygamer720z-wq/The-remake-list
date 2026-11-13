@@ -166,7 +166,7 @@
         input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border-radius: 6px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; }
         
         .profile-preview { display: flex; align-items: center; gap: 12px; background: #1c1c1c; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2a2a2a; }
-        .gd-cube-preview { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #000; }
+        .avatar-circle { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #333; }
     </style>
 </head>
 <body>
@@ -184,7 +184,7 @@
             <button class="lang-btn" onclick="setLanguage('ru', this)">RU</button>
         </div>
         <div id="authContainer">
-            <button class="btn" id="loginBtn">Iniciar sesión</button>
+            <button class="btn" id="loginBtn" onclick="openProfileModal()">Iniciar sesión</button>
         </div>
     </div>
 </header>
@@ -208,31 +208,16 @@
     <div id="demonList"></div>
 </div>
 
-<!-- Modal para Crear Perfil Local Online (Perfil por defecto: samurandomer) -->
+<!-- Modal para Configurar Perfil -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
         <h2 id="t-profiletitle" style="margin-top:0;">Configura tu Perfil</h2>
         <form id="profileForm">
             <label id="t-profilename">Tu Nombre de Usuario en GD:</label>
-            <input type="text" id="profileName" required value="samurandomer">
+            <input type="text" id="profileName" required placeholder="Introducir">
 
-            <label id="t-profiletype">Elige qué deseas usar (Opcional):</label>
-            <select id="profileType" onchange="toggleProfileOptions()">
-                <option value="icons" id="t-opticons">Elegir tus iconos y colores</option>
-                <option value="image" id="t-optimage">Imagen de tu perfil</option>
-            </select>
-
-            <div id="iconsOption">
-                <label id="t-color1">Color Principal (Cubo):</label>
-                <input type="color" id="color1" value="#00d2ff" style="height:40px; padding:2px;">
-                <label id="t-color2">Color Secundario:</label>
-                <input type="color" id="color2" value="#ffffff" style="height:40px; padding:2px;">
-            </div>
-
-            <div id="imageOption" style="display:none;">
-                <label id="t-imgurl">Link de tu imagen:</label>
-                <input type="url" id="imageUrl" placeholder="https://...">
-            </div>
+            <label id="t-profileimg">Imagen de tu perfil (URL o archivo):</label>
+            <input type="url" id="profileImgUrl" placeholder="https://...">
 
             <button type="submit" class="btn" id="t-saveprofile" style="width:100%; margin-top:10px;">Guardar Perfil</button>
         </form>
@@ -256,7 +241,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // PEGA AQUÍ TUS DATOS REALES DE FIREBASE (Firestore para los niveles)
     const firebaseConfig = {
         apiKey: "TU_API_KEY",
         authDomain: "TU_PROYECTO.firebaseapp.com",
@@ -284,12 +268,8 @@
             adminbtnsubmit: "Verificar",
             profiletitle: "Configura tu Perfil",
             profilename: "Tu Nombre de Usuario en GD:",
-            profiletype: "Elige qué deseas usar (Opcional):",
-            opticons: "Elegir tus iconos y colores",
-            optimage: "Imagen de tu perfil",
-            color1: "Color Principal (Cubo):",
-            color2: "Color Secundario:",
-            imgurl: "Link de tu imagen:",
+            placeholdername: "Introducir",
+            profileimg: "Imagen de tu perfil (URL):",
             saveprofile: "Guardar Perfil",
             verifiedBy: "Verificado por",
             by: "Por"
@@ -306,12 +286,8 @@
             adminbtnsubmit: "Verify",
             profiletitle: "Configure Profile",
             profilename: "Your GD Username:",
-            profiletype: "Choose what to use (Optional):",
-            opticons: "Choose your icons & colors",
-            optimage: "Profile picture",
-            color1: "Primary Color (Cube):",
-            color2: "Secondary Color:",
-            imgurl: "Image Link:",
+            placeholdername: "Enter",
+            profileimg: "Profile picture (URL):",
             saveprofile: "Save Profile",
             verifiedBy: "Verified by",
             by: "By"
@@ -328,12 +304,8 @@
             adminbtnsubmit: "Проверить",
             profiletitle: "Настройка профиля",
             profilename: "Ваш ник в GD:",
-            profiletype: "Выберите стиль (Необязательно):",
-            opticons: "Выбрать иконки и цвета",
-            optimage: "Картинка профиля",
-            color1: "Основной цвет (Куб):",
-            color2: "Второй цвет:",
-            imgurl: "Ссылка на картинку:",
+            placeholdername: "Ввести",
+            profileimg: "Картинка профиля (URL):",
             saveprofile: "Сохранить профиль",
             verifiedBy: "Проверил",
             by: "От"
@@ -355,12 +327,8 @@
         document.getElementById('t-adminbtnsubmit').innerText = translations[lang].adminbtnsubmit;
         document.getElementById('t-profiletitle').innerText = translations[lang].profiletitle;
         document.getElementById('t-profilename').innerText = translations[lang].profilename;
-        document.getElementById('t-profiletype').innerText = translations[lang].profiletype;
-        document.getElementById('t-opticons').innerText = translations[lang].opticons;
-        document.getElementById('t-optimage').innerText = translations[lang].optimage;
-        document.getElementById('t-color1').innerText = translations[lang].color1;
-        document.getElementById('t-color2').innerText = translations[lang].color2;
-        document.getElementById('t-imgurl').innerText = translations[lang].imgurl;
+        document.getElementById('profileName').placeholder = translations[lang].placeholdername;
+        document.getElementById('t-profileimg').innerText = translations[lang].profileimg;
         document.getElementById('t-saveprofile').innerText = translations[lang].saveprofile;
 
         const loginBtnEl = document.getElementById('loginBtn');
@@ -387,7 +355,6 @@
         particleContainer.appendChild(p);
     }
 
-    // Comprobar estado guardado localmente en el dispositivo
     function checkLocalStorageSession() {
         const savedProfile = localStorage.getItem('gd_profile');
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
@@ -396,12 +363,7 @@
 
         if (savedProfile) {
             const profile = JSON.parse(savedProfile);
-            let avatarHtml = `<div class="gd-cube-preview" style="background:#00d2ff; color:#ffffff;">GD</div>`;
-            if (profile.type === 'icons') {
-                avatarHtml = `<div class="gd-cube-preview" style="background:${profile.color1}; color:${profile.color2};">GD</div>`;
-            } else if (profile.type === 'image' && profile.imageUrl) {
-                avatarHtml = `<img src="${profile.imageUrl}" class="avatar-circle" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">`;
-            }
+            let avatarHtml = `<img src="${profile.imageUrl || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
 
             let adminButtonHtml = '';
             if (!isAdmin) {
@@ -431,38 +393,19 @@
         if (savedProfile) {
             const profile = JSON.parse(savedProfile);
             document.getElementById('profileName').value = profile.name;
-            document.getElementById('profileType').value = profile.type || 'icons';
-            if (profile.type === 'icons') {
-                document.getElementById('color1').value = profile.color1 || '#00d2ff';
-                document.getElementById('color2').value = profile.color2 || '#ffffff';
-            } else {
-                document.getElementById('imageUrl').value = profile.imageUrl || '';
-            }
-            toggleProfileOptions();
+            document.getElementById('profileImgUrl').value = profile.imageUrl || '';
         } else {
-            document.getElementById('profileName').value = "samurandomer";
+            document.getElementById('profileName').value = "";
+            document.getElementById('profileImgUrl').value = "";
         }
         document.getElementById('profileModal').style.display = 'flex';
-    };
-
-    window.toggleProfileOptions = () => {
-        const type = document.getElementById('profileType').value;
-        document.getElementById('iconsOption').style.display = type === 'icons' ? 'block' : 'none';
-        document.getElementById('imageOption').style.display = type === 'image' ? 'block' : 'none';
     };
 
     document.getElementById('profileForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('profileName').value;
-        const type = document.getElementById('profileType').value;
-        let profileData = { name, type };
-
-        if (type === 'icons') {
-            profileData.color1 = document.getElementById('color1').value;
-            profileData.color2 = document.getElementById('color2').value;
-        } else {
-            profileData.imageUrl = document.getElementById('imageUrl').value || '';
-        }
+        const imageUrl = document.getElementById('profileImgUrl').value;
+        let profileData = { name, imageUrl };
 
         localStorage.setItem('gd_profile', JSON.stringify(profileData));
         document.getElementById('profileModal').style.display = 'none';
@@ -476,7 +419,6 @@
         location.reload();
     };
 
-    // Funciones del botón Admin con contraseña
     window.openAdminModal = () => {
         document.getElementById('adminModal').style.display = 'flex';
     };
