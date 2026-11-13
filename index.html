@@ -448,7 +448,6 @@
 
 <script>
     // ⚙️ CAMBIA ESTA FECHA CADA VEZ QUE MODIFIQUES EL CÓDIGO DE INDEX.HTML ⚙️
-    // Formato: "AÑO-MES-DÍA HORA:MINUTO" (Ejemplo: "2026-06-07 15:30")
     const INDEX_LAST_MODIFIED = "2026-06-07 00:00"; 
 
     const translations = {
@@ -628,7 +627,7 @@
         particleContainer.appendChild(p);
     }
 
-    // 1. Control de actualización del archivo index.html (Basado en la fecha superior)
+    // 1. Control de actualización del archivo index.html
     function checkIndexUpdateStatus() {
         const badge = document.getElementById('updateBadge');
         const updateTime = new Date(INDEX_LAST_MODIFIED).getTime();
@@ -642,22 +641,23 @@
         }
     }
 
-    // 2. Control de niveles añadidos (Cuenta cuántos se añadieron en las últimas 24h)
+    // 2. Control de niveles añadidos
     function checkLevelAddedStatus() {
         const badge = document.getElementById('levelAddedBadge');
-        const addedHistory = JSON.parse(localStorage.getItem('gd_levels_added_history') || '[]');
+        let addedHistory = JSON.parse(localStorage.getItem('gd_levels_added_history') || '[]');
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
 
         // Filtrar solo los niveles añadidos hace menos de 24 horas
-        const recentLevels = addedHistory.filter(timestamp => (now - timestamp) < oneDay);
+        addedHistory = addedHistory.filter(timestamp => (now - timestamp) < oneDay);
+        localStorage.setItem('gd_levels_added_history', JSON.stringify(addedHistory));
 
-        if (recentLevels.length > 0) {
+        if (addedHistory.length > 0) {
             badge.style.display = 'block';
-            if (recentLevels.length === 1) {
+            if (addedHistory.length === 1) {
                 badge.innerText = translations[currentLang].singleLevelAdded;
             } else {
-                badge.innerText = translations[currentLang].multiLevelAdded(recentLevels.length);
+                badge.innerText = translations[currentLang].multiLevelAdded(addedHistory.length);
             }
         } else {
             badge.style.display = 'none';
@@ -673,12 +673,20 @@
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
         
-        // Limpiar registros antiguos mayores a 24h para mantener orden
         addedHistory = addedHistory.filter(timestamp => (now - timestamp) < oneDay);
-        
-        // Añadir el nuevo registro
         addedHistory.push(now);
         localStorage.setItem('gd_levels_added_history', JSON.stringify(addedHistory));
+        checkLevelAddedStatus();
+    }
+
+    // Si se borra un nivel, eliminamos el registro más antiguo del historial de adición para que baje el conteo o desaparezca
+    function removeLatestLevelAdditionRecord() {
+        let addedHistory = JSON.parse(localStorage.getItem('gd_levels_added_history') || '[]');
+        if (addedHistory.length > 0) {
+            addedHistory.sort((a, b) => b - a); // Ordenar del más reciente al más antiguo
+            addedHistory.shift(); // Eliminar el más reciente para reducir el contador de niveles añadidos
+            localStorage.setItem('gd_levels_added_history', JSON.stringify(addedHistory));
+        }
         checkLevelAddedStatus();
     }
 
@@ -969,7 +977,7 @@
         let levels = JSON.parse(localStorage.getItem('gd_custom_levels') || '[]');
         levels.push(levelData);
         localStorage.setItem('gd_custom_levels', JSON.stringify(levels));
-        recordLevelAddition(); // Registra que se añadió un nivel para activar el aviso de 24h
+        recordLevelAddition(); 
         closeAddLevelModal();
         document.getElementById('levelForm').reset();
         loadLevels();
@@ -1119,7 +1127,7 @@
     };
 
     window.copyLevelId = () => {
-        navigator.clipboard.writeText(window.selectedLevelIdForCount || window.selectedLevelIdForCopy).then(() => {
+        navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => {
             alert("¡ID copiado al portapapeles!");
         }).catch(err => {
             console.error("Error al copiar: ", err);
@@ -1135,14 +1143,18 @@
             let levels = JSON.parse(localStorage.getItem('gd_custom_levels') || '[]');
             levels = levels.filter(l => l.id !== id);
             localStorage.setItem('gd_custom_levels', JSON.stringify(levels));
+            
+            // Si borras el nivel, se quita también un registro del aviso de nivel añadido
+            removeLatestLevelAdditionRecord();
+
             loadLevels();
             alert("Nivel eliminado correctamente.");
         }
     };
 
     checkLocalStorageSession();
-    checkIndexUpdateStatus();  // Revisa si actualizaste el código del index.html
-    checkLevelAddedStatus();   // Revisa si hay niveles añadidos recientemente
+    checkIndexUpdateStatus();  
+    checkLevelAddedStatus();   
 </script>
 </body>
 </html>
