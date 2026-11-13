@@ -241,7 +241,17 @@
 <!-- SDKs de Firebase -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { 
+        getAuth, 
+        GoogleAuthProvider, 
+        signInWithPopup, 
+        signInWithRedirect, 
+        getRedirectResult, 
+        setPersistence, 
+        browserLocalPersistence, 
+        signOut, 
+        onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     // PEGA AQUÍ TUS DATOS REALES DE FIREBASE
@@ -259,7 +269,25 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
     
+    // Solicitar correo y perfil básico y mostrar selector de cuentas
+    provider.addScope('email');
+    provider.addScope('profile');
     provider.setCustomParameters({ prompt: 'select_account' });
+
+    // Forzar persistencia local en el dispositivo (la sesión no se cierra al salir o recargar)
+    setPersistence(auth, browserLocalPersistence).catch((err) => {
+        console.error("Error de persistencia:", err);
+    });
+
+    // Capturar resultado si el navegador móvil usó redirección en lugar de ventana emergente
+    getRedirectResult(auth).catch((error) => {
+        if (error.code !== 'auth/null-user') {
+            console.error("Error en redirección de Google:", error);
+            if (error.code === 'auth/unauthorized-domain') {
+                alert("Error: Debes añadir este dominio (" + window.location.hostname + ") en Firebase Console -> Authentication -> Settings -> Authorized domains.");
+            }
+        }
+    });
 
     const ADMIN_EMAIL = "geometrygamer720z@gmail.com";
 
@@ -370,35 +398,60 @@
         particleContainer.appendChild(p);
     }
 
+    // Sistema híbrido robusto de inicio de sesión (Popup con respaldo automático a Redirect para móviles)
     const triggerGoogleLogin = async () => {
         try {
+            await setPersistence(auth, browserLocalPersistence);
             await signInWithPopup(auth, provider);
         } catch (error) {
-            console.error("Error al iniciar sesión:", error);
-            alert("Error al iniciar sesión: " + error.message);
+            console.warn("Popup bloqueado o no soportado, cambiando a redirección:", error.code);
+            if (
+                error.code === 'auth/popup-blocked' || 
+                error.code === 'auth/popup-closed-by-user' || 
+                error.code === 'auth/cancelled-popup-request' ||
+                error.code === 'auth/operation-not-supported-in-this-environment'
+            ) {
+                try {
+                    await signInWithRedirect(auth, provider);
+                } catch (redirectError) {
+                    alert("Error al iniciar sesión: " + redirectError.message);
+                }
+            } else if (error.code === 'auth/unauthorized-domain') {
+                alert("Dominio no autorizado. Añade '" + window.location.hostname + "' en Firebase Console > Authentication > Settings > Authorized domains.");
+            } else if (error.code === 'auth/invalid-api-key') {
+                alert("Falta configurar tus credenciales reales de Firebase en el código (firebaseConfig).");
+            } else {
+                alert("Error de inicio de sesión: " + error.message);
+            }
         }
     };
 
     document.getElementById('loginBtn').onclick = triggerGoogleLogin;
 
-    // Detección de cuentas (Usuario Normal vs Admin)
+    // Detección de cuentas (Usuario Normal vs Admin) y restauración automática al abrir la página
     onAuthStateChanged(auth, async (user) => {
         const authContainer = document.getElementById('authContainer');
         const adminPanel = document.getElementById('adminPanel');
 
         if (user) {
-            const userDocRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userDocRef);
+            let userData = null;
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userDocRef);
 
-            if (!userSnap.exists()) {
-                document.getElementById('profileModal').style.display = 'flex';
-                document.getElementById('profileName').value = user.displayName || "";
+                if (!userSnap.exists()) {
+                    document.getElementById('profileModal').style.display = 'flex';
+                    document.getElementById('profileName').value = user.displayName || "";
+                } else {
+                    userData = userSnap.data();
+                }
+            } catch (dbErr) {
+                console.error("Error leyendo perfil de Firestore:", dbErr);
             }
 
-            const userData = userSnap.exists() ? userSnap.data() : null;
-            const displayName = userData ? userData.name : user.displayName;
+            const displayName = userData ? userData.name : (user.displayName || user.email.split('@')[0]);
 
-            let avatarHtml = `<img src="${user.photoURL}" class="avatar-circle">`;
+            let avatarHtml = `<img src="${user.photoURL || ''}" class="avatar-circle" onerror="this.style.display='none'">`;
             if (userData) {
                 if (userData.type === 'icons') {
                     avatarHtml = `<div class="gd-cube-preview" style="background:${userData.color1}; color:${userData.color2};">GD</div>`;
@@ -469,7 +522,7 @@
             
             listContainer.innerHTML = "";
             if (querySnapshot.empty) {
-                return; // No muestra texto de carga ni de vacío si no hay niveles
+                return;
             }
 
             querySnapshot.forEach((docSnap) => {
