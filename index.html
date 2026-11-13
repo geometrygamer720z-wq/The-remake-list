@@ -111,6 +111,7 @@
         }
         .btn:hover { opacity: 0.85; }
         .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .btn-admin { background: linear-gradient(135deg, #f7b733, #fc4a1a); color: #000; }
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
 
@@ -165,7 +166,6 @@
         input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border-radius: 6px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; }
         
         .profile-preview { display: flex; align-items: center; gap: 12px; background: #1c1c1c; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2a2a2a; }
-        .avatar-circle { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #333; }
         .gd-cube-preview { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #000; }
     </style>
 </head>
@@ -208,30 +208,13 @@
     <div id="demonList"></div>
 </div>
 
-<!-- Modal para Iniciar Sesión con Correo y Contraseña Directa -->
-<div id="loginModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeLoginModal()">&times;</span>
-        <h2 id="t-loginmodaltitle" style="margin-top:0;">Iniciar Sesión</h2>
-        <form id="emailLoginForm">
-            <label id="t-emaillabel">Correo electrónico:</label>
-            <input type="email" id="loginEmail" required placeholder="tucorreo@gmail.com">
-
-            <label id="t-passlabel">Contraseña:</label>
-            <input type="password" id="loginPassword" required placeholder="••••••••">
-
-            <button type="submit" class="btn" id="t-loginbtnsubmit" style="width:100%; margin-top:10px;">Entrar</button>
-        </form>
-    </div>
-</div>
-
-<!-- Modal para Crear / Editar Perfil Online -->
+<!-- Modal para Crear Perfil Local Online (Perfil por defecto: samurandomer) -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
         <h2 id="t-profiletitle" style="margin-top:0;">Configura tu Perfil</h2>
         <form id="profileForm">
             <label id="t-profilename">Tu Nombre de Usuario en GD:</label>
-            <input type="text" id="profileName" required placeholder="Ej: Player720">
+            <input type="text" id="profileName" required value="samurandomer">
 
             <label id="t-profiletype">Elige qué deseas usar (Opcional):</label>
             <select id="profileType" onchange="toggleProfileOptions()">
@@ -256,20 +239,24 @@
     </div>
 </div>
 
-<!-- SDKs de Firebase -->
+<!-- Modal de Contraseña de Administrador -->
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <h3 style="margin-top:0;" id="t-admintitlemodal">Acceso de Administrador</h3>
+        <form id="adminPassForm">
+            <input type="password" id="adminPassInput" required placeholder="Contraseña de Admin">
+            <button type="submit" class="btn btn-admin" id="t-adminbtnsubmit" style="width:100%;">Verificar</button>
+        </form>
+    </div>
+</div>
+
+<!-- SDK de Firebase Firestore -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { 
-        getAuth, 
-        signInWithEmailAndPassword, 
-        setPersistence, 
-        browserLocalPersistence, 
-        signOut, 
-        onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // PEGA AQUÍ TUS DATOS REALES DE FIREBASE
+    // PEGA AQUÍ TUS DATOS REALES DE FIREBASE (Firestore para los niveles)
     const firebaseConfig = {
         apiKey: "TU_API_KEY",
         authDomain: "TU_PROYECTO.firebaseapp.com",
@@ -280,28 +267,21 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
-    
-    // Mantener la sesión guardada permanentemente en el dispositivo
-    setPersistence(auth, browserLocalPersistence).catch((err) => {
-        console.error("Error de persistencia:", err);
-    });
 
-    const ADMIN_EMAIL = "geometrygamer720z@gmail.com";
+    const ADMIN_PASSWORD = "6767XDXD";
 
     const translations = {
         es: {
             pagetitle: "La Remake List - GD",
             title: "LA REMAKE LIST",
             login: "Iniciar sesión",
-            logout: "Salir",
+            logout: "Cerrar sesión",
+            adminbtntext: "Admin",
             admintitle: "Panel de Administrador",
             addbtn: "Añadir Nivel a la Lista",
-            loginmodaltitle: "Iniciar Sesión",
-            emaillabel: "Correo electrónico:",
-            passlabel: "Contraseña:",
-            loginbtnsubmit: "Entrar",
+            admintitlemodal: "Acceso de Administrador",
+            adminbtnsubmit: "Verificar",
             profiletitle: "Configura tu Perfil",
             profilename: "Tu Nombre de Usuario en GD:",
             profiletype: "Elige qué deseas usar (Opcional):",
@@ -319,12 +299,11 @@
             title: "LA REMAKE LIST",
             login: "Sign in",
             logout: "Log out",
+            adminbtntext: "Admin",
             admintitle: "Admin Panel",
             addbtn: "Add Level to List",
-            loginmodaltitle: "Sign In",
-            emaillabel: "Email address:",
-            passlabel: "Password:",
-            loginbtnsubmit: "Enter",
+            admintitlemodal: "Admin Access",
+            adminbtnsubmit: "Verify",
             profiletitle: "Configure Profile",
             profilename: "Your GD Username:",
             profiletype: "Choose what to use (Optional):",
@@ -342,12 +321,11 @@
             title: "LA REMAKE LIST",
             login: "Войти",
             logout: "Выйти",
+            adminbtntext: "Админ",
             admintitle: "Панель администратора",
             addbtn: "Добавить уровень",
-            loginmodaltitle: "Вход",
-            emaillabel: "Эл. почта:",
-            passlabel: "Пароль:",
-            loginbtnsubmit: "Войти",
+            admintitlemodal: "Доступ администратора",
+            adminbtnsubmit: "Проверить",
             profiletitle: "Настройка профиля",
             profilename: "Ваш ник в GD:",
             profiletype: "Выберите стиль (Необязательно):",
@@ -373,10 +351,8 @@
         document.getElementById('t-title').innerText = translations[lang].title;
         document.getElementById('t-admintitle').innerText = translations[lang].admintitle;
         document.getElementById('t-addbtn').innerText = translations[lang].addbtn;
-        document.getElementById('t-loginmodaltitle').innerText = translations[lang].loginmodaltitle;
-        document.getElementById('t-emaillabel').innerText = translations[lang].emaillabel;
-        document.getElementById('t-passlabel').innerText = translations[lang].passlabel;
-        document.getElementById('t-loginbtnsubmit').innerText = translations[lang].loginbtnsubmit;
+        document.getElementById('t-admintitlemodal').innerText = translations[lang].admintitlemodal;
+        document.getElementById('t-adminbtnsubmit').innerText = translations[lang].adminbtnsubmit;
         document.getElementById('t-profiletitle').innerText = translations[lang].profiletitle;
         document.getElementById('t-profilename').innerText = translations[lang].profilename;
         document.getElementById('t-profiletype').innerText = translations[lang].profiletype;
@@ -391,6 +367,8 @@
         if (loginBtnEl) loginBtnEl.innerText = translations[lang].login;
         const logoutBtnEl = document.getElementById('logoutBtn');
         if (logoutBtnEl) logoutBtnEl.innerText = translations[lang].logout;
+        const adminBtnEl = document.getElementById('adminAccessBtn');
+        if (adminBtnEl) adminBtnEl.innerText = translations[lang].adminbtntext;
 
         loadLevels();
     };
@@ -409,94 +387,63 @@
         particleContainer.appendChild(p);
     }
 
-    // Abrir modal de inicio de sesión con correo y contraseña
-    window.openLoginModal = () => {
-        document.getElementById('loginModal').style.display = 'flex';
-        // Autocompletar automáticamente tu correo de admin si lo deseas, o dejarlo libre
-        document.getElementById('loginEmail').value = ADMIN_EMAIL;
-    };
-
-    window.closeLoginModal = () => {
-        document.getElementById('loginModal').style.display = 'none';
-    };
-
-    document.getElementById('loginBtn').onclick = openLoginModal;
-
-    // Manejar el envío del formulario de correo y contraseña
-    document.getElementById('emailLoginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            closeLoginModal();
-            document.getElementById('emailLoginForm').reset();
-        } catch (error) {
-            console.error("Error de autenticación:", error.code);
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
-                alert("Contraseña incorrecta o correo no registrado.");
-            } else if (error.code === 'auth/invalid-email') {
-                alert("El correo electrónico no es válido.");
-            } else {
-                alert("Error al iniciar sesión: " + error.message);
-            }
-        }
-    });
-
-    onAuthStateChanged(auth, async (user) => {
+    // Comprobar estado guardado localmente en el dispositivo
+    function checkLocalStorageSession() {
+        const savedProfile = localStorage.getItem('gd_profile');
+        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         const authContainer = document.getElementById('authContainer');
         const adminPanel = document.getElementById('adminPanel');
 
-        if (user) {
-            let userData = null;
-            try {
-                const userDocRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userDocRef);
-
-                if (!userSnap.exists()) {
-                    document.getElementById('profileModal').style.display = 'flex';
-                    document.getElementById('profileName').value = user.displayName || user.email.split('@')[0];
-                } else {
-                    userData = userSnap.data();
-                }
-            } catch (dbErr) {
-                console.error("Error leyendo perfil de Firestore:", dbErr);
+        if (savedProfile) {
+            const profile = JSON.parse(savedProfile);
+            let avatarHtml = `<div class="gd-cube-preview" style="background:#00d2ff; color:#ffffff;">GD</div>`;
+            if (profile.type === 'icons') {
+                avatarHtml = `<div class="gd-cube-preview" style="background:${profile.color1}; color:${profile.color2};">GD</div>`;
+            } else if (profile.type === 'image' && profile.imageUrl) {
+                avatarHtml = `<img src="${profile.imageUrl}" class="avatar-circle" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">`;
             }
 
-            const displayName = userData ? userData.name : (user.displayName || user.email.split('@')[0]);
-
-            let avatarHtml = `<div class="gd-cube-preview" style="background:#00d2ff; color:#ffffff;">GD</div>`;
-            if (userData) {
-                if (userData.type === 'icons') {
-                    avatarHtml = `<div class="gd-cube-preview" style="background:${userData.color1}; color:${userData.color2};">GD</div>`;
-                } else if (userData.type === 'image' && userData.imageUrl) {
-                    avatarHtml = `<img src="${userData.imageUrl}" class="avatar-circle">`;
-                }
+            let adminButtonHtml = '';
+            if (!isAdmin) {
+                adminButtonHtml = `<button class="btn btn-admin" id="adminAccessBtn" onclick="openAdminModal()" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].adminbtntext}</button>`;
+            } else {
+                adminPanel.style.display = 'block';
             }
 
             authContainer.innerHTML = `
                 <div style="display:flex; align-items:center; gap:10px;">
                     <div class="profile-preview" onclick="openProfileModal()">
                         ${avatarHtml}
-                        <span style="font-size:0.9rem; font-weight:bold;">${displayName}</span>
+                        <span style="font-size:0.9rem; font-weight:bold;">${profile.name}</span>
                     </div>
-                    <button class="btn btn-danger" id="logoutBtn" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].logout}</button>
+                    ${adminButtonHtml}
+                    <button class="btn btn-danger" onclick="logoutProfile()" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].logout}</button>
                 </div>
             `;
-            document.getElementById('logoutBtn').onclick = () => signOut(auth);
-
-            if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                adminPanel.style.display = 'block';
-            } else {
-                adminPanel.style.display = 'none';
-            }
         } else {
-            authContainer.innerHTML = `<button class="btn" id="loginBtn">${translations[currentLang].login}</button>`;
-            document.getElementById('loginBtn').onclick = openLoginModal;
+            authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openProfileModal()">${translations[currentLang].login}</button>`;
             adminPanel.style.display = 'none';
         }
-    });
+    }
+
+    window.openProfileModal = () => {
+        const savedProfile = localStorage.getItem('gd_profile');
+        if (savedProfile) {
+            const profile = JSON.parse(savedProfile);
+            document.getElementById('profileName').value = profile.name;
+            document.getElementById('profileType').value = profile.type || 'icons';
+            if (profile.type === 'icons') {
+                document.getElementById('color1').value = profile.color1 || '#00d2ff';
+                document.getElementById('color2').value = profile.color2 || '#ffffff';
+            } else {
+                document.getElementById('imageUrl').value = profile.imageUrl || '';
+            }
+            toggleProfileOptions();
+        } else {
+            document.getElementById('profileName').value = "samurandomer";
+        }
+        document.getElementById('profileModal').style.display = 'flex';
+    };
 
     window.toggleProfileOptions = () => {
         const type = document.getElementById('profileType').value;
@@ -504,15 +451,8 @@
         document.getElementById('imageOption').style.display = type === 'image' ? 'block' : 'none';
     };
 
-    window.openProfileModal = () => {
-        document.getElementById('profileModal').style.display = 'flex';
-    };
-
-    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    document.getElementById('profileForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const user = auth.currentUser;
-        if (!user) return;
-
         const name = document.getElementById('profileName').value;
         const type = document.getElementById('profileType').value;
         let profileData = { name, type };
@@ -524,9 +464,39 @@
             profileData.imageUrl = document.getElementById('imageUrl').value || '';
         }
 
-        await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
+        localStorage.setItem('gd_profile', JSON.stringify(profileData));
         document.getElementById('profileModal').style.display = 'none';
+        checkLocalStorageSession();
+    });
+
+    window.logoutProfile = () => {
+        localStorage.removeItem('gd_profile');
+        localStorage.removeItem('gd_is_admin');
+        checkLocalStorageSession();
         location.reload();
+    };
+
+    // Funciones del botón Admin con contraseña
+    window.openAdminModal = () => {
+        document.getElementById('adminModal').style.display = 'flex';
+    };
+
+    window.closeAdminModal = () => {
+        document.getElementById('adminModal').style.display = 'none';
+    };
+
+    document.getElementById('adminPassForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pass = document.getElementById('adminPassInput').value;
+        if (pass === ADMIN_PASSWORD) {
+            localStorage.setItem('gd_is_admin', 'true');
+            alert("¡Acceso de administrador concedido para siempre!");
+            closeAdminModal();
+            checkLocalStorageSession();
+        } else {
+            alert("Contraseña incorrecta.");
+        }
+        document.getElementById('adminPassInput').value = '';
     });
 
     async function loadLevels() {
@@ -568,10 +538,8 @@
     if (levelForm) {
         levelForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const user = auth.currentUser;
-            if (!user || user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-                return;
-            }
+            const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+            if (!isAdmin) return;
 
             await addDoc(collection(db, "levels"), {
                 name: document.getElementById('lvlName').value,
@@ -587,6 +555,7 @@
         });
     }
 
+    checkLocalStorageSession();
     loadLevels();
 </script>
 </body>
