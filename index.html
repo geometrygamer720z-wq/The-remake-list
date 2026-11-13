@@ -184,7 +184,7 @@
             <button class="lang-btn" onclick="setLanguage('ru', this)">RU</button>
         </div>
         <div id="authContainer">
-            <button class="btn" id="loginBtn" onclick="openProfileModal()">Iniciar sesión</button>
+            <button class="btn" id="loginBtn" onclick="openAuthModal()">Iniciar sesión</button>
         </div>
     </div>
 </header>
@@ -208,18 +208,45 @@
     <div id="demonList"></div>
 </div>
 
-<!-- Modal para Configurar Perfil -->
+<!-- Modal Principal de Autenticación / Registro / Inicio de Sesión -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+        <h2 id="t-authmodaltitle" style="margin-top:0;">Iniciar Sesión / Registrarse</h2>
+        <form id="authForm">
+            <label id="t-authname">Tu Nombre de Usuario en GD:</label>
+            <input type="text" id="authName" required placeholder="Introducir">
+
+            <label id="t-authpass">Contraseña:</label>
+            <input type="password" id="authPass" required placeholder="••••••••">
+
+            <div id="fileUploadContainer">
+                <label id="t-authimg">Sube tu imagen de perfil:</label>
+                <input type="file" id="authImgFile" accept="image/*" style="color: var(--text-muted);">
+            </div>
+
+            <button type="submit" class="btn" id="t-authsubmit" style="width:100%; margin-top:10px;">Continuar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar / Gestionar Perfil Activo -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
-        <h2 id="t-profiletitle" style="margin-top:0;">Configura tu Perfil</h2>
+        <span class="close-btn" onclick="closeProfileModal()">&times;</span>
+        <h2 id="t-profiletitle" style="margin-top:0;">Editar Perfil</h2>
         <form id="profileForm">
             <label id="t-profilename">Tu Nombre de Usuario en GD:</label>
-            <input type="text" id="profileName" required placeholder="Introducir">
+            <input type="text" id="profileName" required>
 
-            <label id="t-profileimg">Sube tu imagen de perfil:</label>
+            <label id="t-profilepass">Nueva Contraseña (opcional):</label>
+            <input type="password" id="profilePass" placeholder="Dejar en blanco para mantener">
+
+            <label id="t-profileimg">Cambiar imagen de perfil:</label>
             <input type="file" id="profileImgFile" accept="image/*" style="color: var(--text-muted);">
 
-            <button type="submit" class="btn" id="t-saveprofile" style="width:100%; margin-top:10px;">Guardar Perfil</button>
+            <button type="submit" class="btn" id="t-saveprofile" style="width:100%; margin-top:10px;">Actualizar Perfil</button>
+            <button type="button" class="btn btn-danger" id="t-deleteprofile" onclick="deleteAccount()" style="width:100%; margin-top:10px;">Eliminar Cuenta</button>
         </form>
     </div>
 </div>
@@ -266,11 +293,18 @@
             addbtn: "Añadir Nivel a la Lista",
             admintitlemodal: "Acceso de Administrador",
             adminbtnsubmit: "Verificar",
-            profiletitle: "Configura tu Perfil",
-            profilename: "Tu Nombre de Usuario en GD:",
+            authmodaltitle: "Iniciar Sesión / Registrarse",
+            authname: "Tu Nombre de Usuario en GD:",
             placeholdername: "Introducir",
-            profileimg: "Sube tu imagen de perfil:",
-            saveprofile: "Guardar Perfil",
+            authpass: "Contraseña:",
+            authimg: "Sube tu imagen de perfil:",
+            authsubmit: "Continuar",
+            profiletitle: "Editar Perfil",
+            profilename: "Tu Nombre de Usuario en GD:",
+            profilepass: "Nueva Contraseña (opcional):",
+            profileimg: "Cambiar imagen de perfil:",
+            saveprofile: "Actualizar Perfil",
+            deleteprofile: "Eliminar Cuenta",
             verifiedBy: "Verificado por",
             by: "Por"
         },
@@ -284,11 +318,18 @@
             addbtn: "Add Level to List",
             admintitlemodal: "Admin Access",
             adminbtnsubmit: "Verify",
-            profiletitle: "Configure Profile",
-            profilename: "Your GD Username:",
+            authmodaltitle: "Sign In / Register",
+            authname: "Your GD Username:",
             placeholdername: "Enter",
-            profileimg: "Upload your profile picture:",
-            saveprofile: "Save Profile",
+            authpass: "Password:",
+            authimg: "Upload your profile picture:",
+            authsubmit: "Continue",
+            profiletitle: "Edit Profile",
+            profilename: "Your GD Username:",
+            profilepass: "New Password (optional):",
+            profileimg: "Change profile picture:",
+            saveprofile: "Update Profile",
+            deleteprofile: "Delete Account",
             verifiedBy: "Verified by",
             by: "By"
         },
@@ -302,11 +343,18 @@
             addbtn: "Добавить уровень",
             admintitlemodal: "Доступ администратора",
             adminbtnsubmit: "Проверить",
-            profiletitle: "Настройка профиля",
-            profilename: "Ваш ник в GD:",
+            authmodaltitle: "Вход / Регистрация",
+            authname: "Ваш ник в GD:",
             placeholdername: "Ввести",
-            profileimg: "Загрузите аватарку:",
-            saveprofile: "Сохранить профиль",
+            authpass: "Пароль:",
+            authimg: "Загрузите аватарку:",
+            authsubmit: "Продолжить",
+            profiletitle: "Редактировать профиль",
+            profilename: "Ваш ник в GD:",
+            profilepass: "Новый пароль (необязательно):",
+            profileimg: "Изменить аватарку:",
+            saveprofile: "Обновить профиль",
+            deleteprofile: "Удалить аккаунт",
             verifiedBy: "Проверил",
             by: "От"
         }
@@ -325,11 +373,19 @@
         document.getElementById('t-addbtn').innerText = translations[lang].addbtn;
         document.getElementById('t-admintitlemodal').innerText = translations[lang].admintitlemodal;
         document.getElementById('t-adminbtnsubmit').innerText = translations[lang].adminbtnsubmit;
+        document.getElementById('t-authmodaltitle').innerText = translations[lang].authmodaltitle;
+        document.getElementById('t-authname').innerText = translations[lang].authname;
+        document.getElementById('authName').placeholder = translations[lang].placeholdername;
+        document.getElementById('t-authpass').innerText = translations[lang].authpass;
+        document.getElementById('t-authimg').innerText = translations[lang].authimg;
+        document.getElementById('t-authsubmit').innerText = translations[lang].authsubmit;
         document.getElementById('t-profiletitle').innerText = translations[lang].profiletitle;
         document.getElementById('t-profilename').innerText = translations[lang].profilename;
         document.getElementById('profileName').placeholder = translations[lang].placeholdername;
+        document.getElementById('t-profilepass').innerText = translations[lang].profilepass;
         document.getElementById('t-profileimg').innerText = translations[lang].profileimg;
         document.getElementById('t-saveprofile').innerText = translations[lang].saveprofile;
+        document.getElementById('t-deleteprofile').innerText = translations[lang].deleteprofile;
 
         const loginBtnEl = document.getElementById('loginBtn');
         if (loginBtnEl) loginBtnEl.innerText = translations[lang].login;
@@ -356,13 +412,14 @@
     }
 
     function checkLocalStorageSession() {
-        const savedProfile = localStorage.getItem('gd_profile');
+        const activeUser = localStorage.getItem('gd_active_user');
+        const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         const authContainer = document.getElementById('authContainer');
         const adminPanel = document.getElementById('adminPanel');
 
-        if (savedProfile) {
-            const profile = JSON.parse(savedProfile);
+        if (activeUser && allAccounts[activeUser]) {
+            const profile = allAccounts[activeUser];
             let avatarHtml = `<img src="${profile.imageBase64 || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
 
             let adminButtonHtml = '';
@@ -383,29 +440,94 @@
                 </div>
             `;
         } else {
-            authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openProfileModal()">${translations[currentLang].login}</button>`;
+            authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">${translations[currentLang].login}</button>`;
             adminPanel.style.display = 'none';
         }
     }
 
-    window.openProfileModal = () => {
-        const savedProfile = localStorage.getItem('gd_profile');
-        if (savedProfile) {
-            const profile = JSON.parse(savedProfile);
-            document.getElementById('profileName').value = profile.name;
+    window.openAuthModal = () => {
+        document.getElementById('authName').value = "";
+        document.getElementById('authPass').value = "";
+        document.getElementById('authImgFile').value = "";
+        document.getElementById('authModal').style.display = 'flex';
+    };
+
+    window.closeAuthModal = () => {
+        document.getElementById('authModal').style.display = 'none';
+    };
+
+    document.getElementById('authForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('authName').value.trim();
+        const pass = document.getElementById('authPass').value;
+        const fileInput = document.getElementById('authImgFile');
+
+        let allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+
+        if (allAccounts[name]) {
+            // La cuenta ya existe, verificar contraseña
+            if (allAccounts[name].pass === pass) {
+                localStorage.setItem('gd_active_user', name);
+                closeAuthModal();
+                checkLocalStorageSession();
+            } else {
+                alert("Contraseña incorrecta para esta cuenta.");
+            }
         } else {
-            document.getElementById('profileName').value = "";
+            // Cuenta nueva, registrarla
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert("Por favor selecciona un archivo de imagen válido.");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(uploadEvent) {
+                    const base64Image = uploadEvent.target.result;
+                    registerNewAccount(name, pass, base64Image);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                registerNewAccount(name, pass, '');
+            }
         }
-        document.getElementById('profileImgFile').value = "";
-        document.getElementById('profileModal').style.display = 'flex';
+    });
+
+    function registerNewAccount(name, pass, imageBase64) {
+        let allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+        allAccounts[name] = { name, pass, imageBase64 };
+        localStorage.setItem('gd_accounts', JSON.stringify(allAccounts));
+        localStorage.setItem('gd_active_user', name);
+        closeAuthModal();
+        checkLocalStorageSession();
+    }
+
+    window.openProfileModal = () => {
+        const activeUser = localStorage.getItem('gd_active_user');
+        const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+        if (activeUser && allAccounts[activeUser]) {
+            const profile = allAccounts[activeUser];
+            document.getElementById('profileName').value = profile.name;
+            document.getElementById('profilePass').value = "";
+            document.getElementById('profileImgFile').value = "";
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+    };
+
+    window.closeProfileModal = () => {
+        document.getElementById('profileModal').style.display = 'none';
     };
 
     document.getElementById('profileForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const name = document.getElementById('profileName').value;
+        const activeUser = localStorage.getItem('gd_active_user');
+        let allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+        if (!activeUser || !allAccounts[activeUser]) return;
+
+        const newName = document.getElementById('profileName').value.trim();
+        const newPass = document.getElementById('profilePass').value;
         const fileInput = document.getElementById('profileImgFile');
-        const savedProfile = localStorage.getItem('gd_profile');
-        let existingImage = savedProfile ? JSON.parse(savedProfile).imageBase64 : '';
+        let currentImage = allAccounts[activeUser].imageBase64;
 
         if (fileInput.files && fileInput.files[0]) {
             const file = fileInput.files[0];
@@ -416,24 +538,50 @@
             const reader = new FileReader();
             reader.onload = function(uploadEvent) {
                 const base64Image = uploadEvent.target.result;
-                saveAndApplyProfile(name, base64Image);
+                updateAccountData(activeUser, newName, newPass, base64Image, allAccounts);
             };
             reader.readAsDataURL(file);
         } else {
-            saveAndApplyProfile(name, existingImage);
+            updateAccountData(activeUser, newName, newPass, currentImage, allAccounts);
         }
     });
 
-    function saveAndApplyProfile(name, imageBase64) {
-        let profileData = { name, imageBase64 };
-        localStorage.setItem('gd_profile', JSON.stringify(profileData));
-        document.getElementById('profileModal').style.display = 'none';
+    function updateAccountData(oldName, newName, newPass, imageBase64, allAccounts) {
+        let profileData = allAccounts[oldName];
+        profileData.name = newName;
+        profileData.imageBase64 = imageBase64;
+        if (newPass.trim() !== "") {
+            profileData.pass = newPass;
+        }
+
+        if (oldName !== newName) {
+            delete allAccounts[oldName];
+        }
+        allAccounts[newName] = profileData;
+
+        localStorage.setItem('gd_accounts', JSON.stringify(allAccounts));
+        localStorage.setItem('gd_active_user', newName);
+        closeProfileModal();
         checkLocalStorageSession();
     }
 
+    window.deleteAccount = () => {
+        if (confirm("¿Estás seguro de que deseas eliminar esta cuenta permanentemente?")) {
+            const activeUser = localStorage.getItem('gd_active_user');
+            let allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+            if (activeUser && allAccounts[activeUser]) {
+                delete allAccounts[activeUser];
+                localStorage.setItem('gd_accounts', JSON.stringify(allAccounts));
+            }
+            localStorage.removeItem('gd_active_user');
+            closeProfileModal();
+            checkLocalStorageSession();
+            location.reload();
+        }
+    };
+
     window.logoutProfile = () => {
-        localStorage.removeItem('gd_profile');
-        localStorage.removeItem('gd_is_admin');
+        localStorage.removeItem('gd_active_user');
         checkLocalStorageSession();
         location.reload();
     };
