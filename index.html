@@ -414,7 +414,7 @@
     function checkLocalStorageSession() {
         const activeUser = localStorage.getItem('gd_active_user');
         const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
-        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        const adminAccount = localStorage.getItem('gd_admin_account');
         const authContainer = document.getElementById('authContainer');
         const adminPanel = document.getElementById('adminPanel');
 
@@ -423,10 +423,13 @@
             let avatarHtml = `<img src="${profile.imageBase64 || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
 
             let adminButtonHtml = '';
-            if (!isAdmin) {
-                adminButtonHtml = `<button class="btn btn-admin" id="adminAccessBtn" onclick="openAdminModal()" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].adminbtntext}</button>`;
-            } else {
+            const isThisAccountAdmin = (adminAccount === activeUser);
+
+            if (isThisAccountAdmin) {
                 adminPanel.style.display = 'block';
+            } else {
+                adminPanel.style.display = 'none';
+                adminButtonHtml = `<button class="btn btn-admin" id="adminAccessBtn" onclick="openAdminModal()" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].adminbtntext}</button>`;
             }
 
             authContainer.innerHTML = `
@@ -465,7 +468,6 @@
         let allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
 
         if (allAccounts[name]) {
-            // La cuenta ya existe, verificar contraseña
             if (allAccounts[name].pass === pass) {
                 localStorage.setItem('gd_active_user', name);
                 closeAuthModal();
@@ -474,7 +476,6 @@
                 alert("Contraseña incorrecta para esta cuenta.");
             }
         } else {
-            // Cuenta nueva, registrarla
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
                 if (!file.type.startsWith('image/')) {
@@ -556,6 +557,10 @@
 
         if (oldName !== newName) {
             delete allAccounts[oldName];
+            const adminAccount = localStorage.getItem('gd_admin_account');
+            if (adminAccount === oldName) {
+                localStorage.setItem('gd_admin_account', newName);
+            }
         }
         allAccounts[newName] = profileData;
 
@@ -572,6 +577,10 @@
             if (activeUser && allAccounts[activeUser]) {
                 delete allAccounts[activeUser];
                 localStorage.setItem('gd_accounts', JSON.stringify(allAccounts));
+            }
+            const adminAccount = localStorage.getItem('gd_admin_account');
+            if (adminAccount === activeUser) {
+                localStorage.removeItem('gd_admin_account');
             }
             localStorage.removeItem('gd_active_user');
             closeProfileModal();
@@ -597,9 +606,11 @@
     document.getElementById('adminPassForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const pass = document.getElementById('adminPassInput').value;
+        const activeUser = localStorage.getItem('gd_active_user');
+
         if (pass === ADMIN_PASSWORD) {
-            localStorage.setItem('gd_is_admin', 'true');
-            alert("¡Acceso de administrador concedido para siempre!");
+            localStorage.setItem('gd_admin_account', activeUser);
+            alert("¡Acceso de administrador vinculado permanentemente a esta cuenta!");
             closeAdminModal();
             checkLocalStorageSession();
         } else {
@@ -647,8 +658,9 @@
     if (levelForm) {
         levelForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
-            if (!isAdmin) return;
+            const activeUser = localStorage.getItem('gd_active_user');
+            const adminAccount = localStorage.getItem('gd_admin_account');
+            if (adminAccount !== activeUser) return;
 
             await addDoc(collection(db, "levels"), {
                 name: document.getElementById('lvlName').value,
