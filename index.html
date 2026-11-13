@@ -216,8 +216,8 @@
             <label id="t-profilename">Tu Nombre de Usuario en GD:</label>
             <input type="text" id="profileName" required placeholder="Introducir">
 
-            <label id="t-profileimg">Imagen de tu perfil (URL o archivo):</label>
-            <input type="url" id="profileImgUrl" placeholder="https://...">
+            <label id="t-profileimg">Sube tu imagen de perfil:</label>
+            <input type="file" id="profileImgFile" accept="image/*" style="color: var(--text-muted);">
 
             <button type="submit" class="btn" id="t-saveprofile" style="width:100%; margin-top:10px;">Guardar Perfil</button>
         </form>
@@ -269,7 +269,7 @@
             profiletitle: "Configura tu Perfil",
             profilename: "Tu Nombre de Usuario en GD:",
             placeholdername: "Introducir",
-            profileimg: "Imagen de tu perfil (URL):",
+            profileimg: "Sube tu imagen de perfil:",
             saveprofile: "Guardar Perfil",
             verifiedBy: "Verificado por",
             by: "Por"
@@ -287,7 +287,7 @@
             profiletitle: "Configure Profile",
             profilename: "Your GD Username:",
             placeholdername: "Enter",
-            profileimg: "Profile picture (URL):",
+            profileimg: "Upload your profile picture:",
             saveprofile: "Save Profile",
             verifiedBy: "Verified by",
             by: "By"
@@ -305,7 +305,7 @@
             profiletitle: "Настройка профиля",
             profilename: "Ваш ник в GD:",
             placeholdername: "Ввести",
-            profileimg: "Картинка профиля (URL):",
+            profileimg: "Загрузите аватарку:",
             saveprofile: "Сохранить профиль",
             verifiedBy: "Проверил",
             by: "От"
@@ -363,7 +363,7 @@
 
         if (savedProfile) {
             const profile = JSON.parse(savedProfile);
-            let avatarHtml = `<img src="${profile.imageUrl || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
+            let avatarHtml = `<img src="${profile.imageBase64 || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
 
             let adminButtonHtml = '';
             if (!isAdmin) {
@@ -393,24 +393,43 @@
         if (savedProfile) {
             const profile = JSON.parse(savedProfile);
             document.getElementById('profileName').value = profile.name;
-            document.getElementById('profileImgUrl').value = profile.imageUrl || '';
         } else {
             document.getElementById('profileName').value = "";
-            document.getElementById('profileImgUrl').value = "";
         }
+        document.getElementById('profileImgFile').value = "";
         document.getElementById('profileModal').style.display = 'flex';
     };
 
     document.getElementById('profileForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('profileName').value;
-        const imageUrl = document.getElementById('profileImgUrl').value;
-        let profileData = { name, imageUrl };
+        const fileInput = document.getElementById('profileImgFile');
+        const savedProfile = localStorage.getItem('gd_profile');
+        let existingImage = savedProfile ? JSON.parse(savedProfile).imageBase64 : '';
 
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (!file.type.startsWith('image/')) {
+                alert("Por favor selecciona un archivo de imagen válido.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                const base64Image = uploadEvent.target.result;
+                saveAndApplyProfile(name, base64Image);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            saveAndApplyProfile(name, existingImage);
+        }
+    });
+
+    function saveAndApplyProfile(name, imageBase64) {
+        let profileData = { name, imageBase64 };
         localStorage.setItem('gd_profile', JSON.stringify(profileData));
         document.getElementById('profileModal').style.display = 'none';
         checkLocalStorageSession();
-    });
+    }
 
     window.logoutProfile = () => {
         localStorage.removeItem('gd_profile');
