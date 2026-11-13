@@ -230,7 +230,7 @@
     <div class="modal-content">
         <span class="close-btn" onclick="closeAddLevelModal()">&times;</span>
         <h3 id="t-addlevelmodaltitle" style="margin-top:0; color:var(--accent);">Añadir Nivel</h3>
-        <form id="levelForm">
+        <form id="levelForm" onsubmit="handleAddNewLevel(event)">
             <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
             <input type="text" id="lvlCreator" placeholder="Creador" required>
             <input type="text" id="lvlVerifier" placeholder="Verificador" required>
@@ -300,24 +300,12 @@
     </div>
 </div>
 
-<!-- Modal de Contraseña de Administrador -->
-<div id="adminModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
-        <h3 style="margin-top:0;" id="t-admintitlemodal">Acceso de Administrador</h3>
-        <form id="adminPassForm">
-            <input type="password" id="adminPassInput" required placeholder="Contraseña de Admin">
-            <button type="submit" class="btn btn-admin" id="t-adminbtnsubmit" style="width:100%;">Verificar</button>
-        </form>
-    </div>
-</div>
-
 <!-- Modal para Editar Nivel (Admin) -->
 <div id="editLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeEditModal()">&times;</span>
         <h3 style="margin-top:0; color:var(--accent);" id="t-editleveltitle">Editar Nivel</h3>
-        <form id="editLevelForm">
+        <form id="editLevelForm" onsubmit="handleEditLevel(event)">
             <input type="hidden" id="editLvlDocId">
             <input type="text" id="editLvlName" placeholder="Nombre del nivel" required>
             <input type="text" id="editLvlCreator" placeholder="Creador" required>
@@ -756,7 +744,117 @@
         document.getElementById('addLevelModal').style.display = 'none';
     };
 
-    // Funcionalidad de Niveles y Acciones
+    // Añadir Nivel Robusto con procesamiento seguro de archivos
+    window.handleAddNewLevel = async (event) => {
+        event.preventDefault();
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) {
+            alert("No tienes permisos de administrador.");
+            return;
+        }
+
+        const name = document.getElementById('lvlName').value.trim();
+        const creator = document.getElementById('lvlCreator').value.trim();
+        const verifier = document.getElementById('lvlVerifier').value.trim();
+        const levelId = document.getElementById('lvlId').value.trim();
+        const rank = Number(document.getElementById('lvlRank').value);
+        const youtubeUrl = document.getElementById('lvlYoutube').value.trim();
+        const imageSource = document.getElementById('imageSourceType').value;
+        const fileInput = document.getElementById('lvlLogoFile');
+
+        const levelData = {
+            name, creator, verifier, levelId, rank, youtubeUrl, imageSource, logoBase64: ''
+        };
+
+        if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (!file.type.startsWith('image/')) {
+                alert("Por favor selecciona un archivo de imagen válido.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function(uploadEvent) {
+                levelData.logoBase64 = uploadEvent.target.result;
+                await commitLevelToFirestore(levelData);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            await commitLevelToFirestore(levelData);
+        }
+    };
+
+    async function commitLevelToFirestore(levelData) {
+        try {
+            await addDoc(collection(db, "levels"), levelData);
+            closeAddLevelModal();
+            document.getElementById('levelForm').reset();
+            loadLevels();
+            alert("¡Nivel añadido con éxito!");
+        } catch (err) {
+            console.error("Error al añadir nivel:", err);
+            alert("Error al añadir el nivel: " + err.message);
+        }
+    }
+
+    // Editar Nivel Robusto con procesamiento seguro de archivos
+    window.handleEditLevel = async (event) => {
+        event.preventDefault();
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) {
+            alert("No tienes permisos de administrador.");
+            return;
+        }
+
+        const docId = document.getElementById('editLvlDocId').value;
+        const name = document.getElementById('editLvlName').value.trim();
+        const creator = document.getElementById('editLvlCreator').value.trim();
+        const verifier = document.getElementById('editLvlVerifier').value.trim();
+        const levelId = document.getElementById('editLvlId').value.trim();
+        const rank = Number(document.getElementById('editLvlRank').value);
+        const youtubeUrl = document.getElementById('editLvlYoutube').value.trim();
+        const imageSource = document.getElementById('editImageSourceType').value;
+        const fileInput = document.getElementById('editLvlLogoFile');
+
+        const updateData = {
+            name, creator, verifier, levelId, rank, youtubeUrl, imageSource
+        };
+
+        if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (!file.type.startsWith('image/')) {
+                alert("Por favor selecciona un archivo de imagen válido.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function(uploadEvent) {
+                updateData.logoBase64 = uploadEvent.target.result;
+                await commitUpdateToFirestore(docId, updateData);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            if (imageSource === 'youtube') {
+                updateData.logoBase64 = '';
+            }
+            await commitUpdateToFirestore(docId, updateData);
+        }
+    };
+
+    async function commitUpdateToFirestore(docId, updateData) {
+        try {
+            const levelRef = doc(db, "levels", docId);
+            await updateDoc(levelRef, updateData);
+            closeEditModal();
+            loadLevels();
+            alert("¡Nivel actualizado con éxito!");
+        } catch (err) {
+            console.error("Error al actualizar nivel:", err);
+            alert("Error al actualizar el nivel: " + err.message);
+        }
+    }
+
+    // Funcionalidad de Niveles y Renderizado
     async function loadLevels() {
         const listContainer = document.getElementById('demonList');
         const activeUser = localStorage.getItem('gd_active_user');
@@ -777,7 +875,6 @@
                 const lvl = docSnap.data();
                 const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
                 
-                // Determinar la imagen según la categoría elegida
                 const ytId = extractYouTubeId(lvl.youtubeUrl);
                 const ytThumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
                 const thumbUrl = (lvl.imageSource === 'custom' && lvl.logoBase64) ? lvl.logoBase64 : ytThumb;
@@ -795,8 +892,8 @@
                 if (isAdmin) {
                     adminButtonsHtml = `
                         <div class="level-actions">
-                            <button class="btn btn-edit" onclick="openEditModal('${docId}', '${encodeURIComponent(lvl.name)}', '${encodeURIComponent(lvl.creator)}', '${encodeURIComponent(lvl.verifier)}', '${lvl.levelId}', '${encodeURIComponent(lvl.youtubeUrl)}', ${lvl.rank}, '${lvl.imageSource || 'youtube'}')">${tr.editbtntext}</button>
-                            <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="deleteLevel('${docId}')">${tr.deletebtntext}</button>
+                            <button type="button" class="btn btn-edit" onclick="openEditModal('${docId}', '${encodeURIComponent(lvl.name || '')}', '${encodeURIComponent(lvl.creator || '')}', '${encodeURIComponent(lvl.verifier || '')}', '${lvl.levelId || ''}', '${encodeURIComponent(lvl.youtubeUrl || '')}', ${lvl.rank || 1}, '${lvl.imageSource || 'youtube'}')">${tr.editbtntext}</button>
+                            <button type="button" class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="deleteLevel('${docId}')">${tr.deletebtntext}</button>
                         </div>
                     `;
                 }
@@ -840,7 +937,7 @@
         });
     };
 
-    // Funciones de Edición y Eliminación de Niveles (Admin)
+    // Funciones para abrir Modales de Edición
     window.openEditModal = (docId, name, creator, verifier, levelId, youtubeUrl, rank, imageSource) => {
         document.getElementById('editLvlDocId').value = docId;
         document.getElementById('editLvlName').value = decodeURIComponent(name);
@@ -849,7 +946,7 @@
         document.getElementById('editLvlId').value = levelId;
         document.getElementById('editLvlYoutube').value = decodeURIComponent(youtubeUrl);
         document.getElementById('editLvlRank').value = rank;
-        document.getElementById('editImageSourceType').value = imageSource;
+        document.getElementById('editImageSourceType').value = imageSource || 'youtube';
         toggleEditImageSourceInputs();
         document.getElementById('editLvlLogoFile').value = "";
         document.getElementById('editLevelModal').style.display = 'flex';
@@ -858,59 +955,6 @@
     window.closeEditModal = () => {
         document.getElementById('editLevelModal').style.display = 'none';
     };
-
-    document.getElementById('editLevelForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const activeUser = localStorage.getItem('gd_active_user');
-        const adminAccount = localStorage.getItem('gd_admin_account');
-        if (adminAccount !== activeUser) return;
-
-        const docId = document.getElementById('editLvlDocId').value;
-        const imageSource = document.getElementById('editImageSourceType').value;
-        const fileInput = document.getElementById('editLvlLogoFile');
-
-        const updateData = {
-            name: document.getElementById('editLvlName').value,
-            creator: document.getElementById('editLvlCreator').value,
-            verifier: document.getElementById('editLvlVerifier').value,
-            levelId: document.getElementById('editLvlId').value,
-            youtubeUrl: document.getElementById('editLvlYoutube').value,
-            rank: Number(document.getElementById('editLvlRank').value),
-            imageSource: imageSource
-        };
-
-        if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            if (!file.type.startsWith('image/')) {
-                alert("Por favor selecciona un archivo de imagen válido.");
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = async function(uploadEvent) {
-                updateData.logoBase64 = uploadEvent.target.result;
-                await saveEditedLevel(docId, updateData);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            if (imageSource === 'youtube') {
-                updateData.logoBase64 = '';
-            }
-            await saveEditedLevel(docId, updateData);
-        }
-    });
-
-    async function saveEditedLevel(docId, updateData) {
-        try {
-            const levelRef = doc(db, "levels", docId);
-            await updateDoc(levelRef, updateData);
-            closeEditModal();
-            loadLevels();
-            alert("¡Nivel actualizado con éxito!");
-        } catch (err) {
-            console.error("Error al actualizar nivel: ", err);
-            alert("Error al actualizar el nivel.");
-        }
-    }
 
     window.deleteLevel = async (docId) => {
         const activeUser = localStorage.getItem('gd_active_user');
@@ -928,58 +972,6 @@
             }
         }
     };
-
-    const levelForm = document.getElementById('levelForm');
-    if (levelForm) {
-        levelForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const activeUser = localStorage.getItem('gd_active_user');
-            const adminAccount = localStorage.getItem('gd_admin_account');
-            if (adminAccount !== activeUser) return;
-
-            const imageSource = document.getElementById('imageSourceType').value;
-            const fileInput = document.getElementById('lvlLogoFile');
-            const levelData = {
-                name: document.getElementById('lvlName').value,
-                creator: document.getElementById('lvlCreator').value,
-                verifier: document.getElementById('lvlVerifier').value,
-                levelId: document.getElementById('lvlId').value,
-                youtubeUrl: document.getElementById('lvlYoutube').value,
-                rank: Number(document.getElementById('lvlRank').value),
-                imageSource: imageSource,
-                logoBase64: ''
-            };
-
-            if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                if (!file.type.startsWith('image/')) {
-                    alert("Por favor selecciona un archivo de imagen válido.");
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = async function(uploadEvent) {
-                    levelData.logoBase64 = uploadEvent.target.result;
-                    await saveNewLevel(levelData);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                saveNewLevel(levelData);
-            }
-        });
-    }
-
-    async function saveNewLevel(levelData) {
-        try {
-            await addDoc(collection(db, "levels"), levelData);
-            closeAddLevelModal();
-            levelForm.reset();
-            loadLevels();
-            alert("¡Nivel añadido con éxito!");
-        } catch (err) {
-            console.error("Error al añadir nivel: ", err);
-            alert("Error al añadir el nivel: " + err.message);
-        }
-    }
 
     checkLocalStorageSession();
 </script>
