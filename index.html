@@ -300,6 +300,18 @@
     </div>
 </div>
 
+<!-- Modal de Contraseña de Administrador -->
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
+        <h3 style="margin-top:0;" id="t-admintitlemodal">Acceso de Administrador</h3>
+        <form id="adminPassForm">
+            <input type="password" id="adminPassInput" required placeholder="Contraseña de Admin">
+            <button type="submit" class="btn btn-admin" id="t-adminbtnsubmit" style="width:100%;">Verificar</button>
+        </form>
+    </div>
+</div>
+
 <!-- Modal para Editar Nivel (Admin) -->
 <div id="editLevelModal" class="modal">
     <div class="modal-content">
@@ -919,7 +931,7 @@
 
     const levelForm = document.getElementById('levelForm');
     if (levelForm) {
-        levelForm.addEventListener('submit', async (e) => {
+        levelForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const activeUser = localStorage.getItem('gd_active_user');
             const adminAccount = localStorage.getItem('gd_admin_account');
@@ -951,7 +963,7 @@
                 };
                 reader.readAsDataURL(file);
             } else {
-                await saveNewLevel(levelData);
+                saveNewLevel(levelData);
             }
         });
     }
@@ -965,7 +977,7 @@
             alert("¡Nivel añadido con éxito!");
         } catch (err) {
             console.error("Error al añadir nivel: ", err);
-            alert("Error al añadir el nivel.");
+            alert("Error al añadir el nivel: " + err.message);
         }
     }
 
