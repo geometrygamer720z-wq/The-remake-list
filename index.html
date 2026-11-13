@@ -1,79 +1,536 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=1024" />
-        <title>Your List Name</title>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="t-pagetitle">Mi Demonlist - GD</title>
+    <style>
+        :root {
+            --bg-color: #080808;
+            --card-bg: #141414;
+            --accent: #00d2ff;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
 
-        <!-- Replace your server icon by uploading an image file named "list_icon.png"-->
-        <link rel="icon" href="/list_icon.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@500;700&display=swap"
-            rel="stylesheet"
-        />
-        <link rel="stylesheet" type="text/css" href="/css/reset.css" />
-        <link rel="stylesheet" type="text/css" href="/css/typography.css" />
-        <link rel="stylesheet" type="text/css" href="/css/main.css" />
-        <link rel="stylesheet" type="text/css" href="/css/pages/list.css" />
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="/css/pages/leaderboard.css"
-        />
-        <link rel="stylesheet" type="text/css" href="/css/pages/roulette.css" />
-        <link rel="stylesheet" type="text/css" href="/css/components/nav.css" />
-        <link rel="stylesheet" type="text/css" href="/css/components/btn.css" />
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="/css/components/tabs.css"
-        />
-        <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.js"></script>
-        <script src="https://unpkg.com/vue-router@4.0.14/dist/vue-router.global.prod.js"></script>
-        <script type="module" src="/js/main.js"></script>
-    </head>
-    <body id="app">
-        <header :class="{ dark: store.dark }">
-            <div class="logo">
-                <h2>Sample List</h2>
-                <p>v1.0.0</p>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Partículas de GD de fondo */
+        .gd-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            bottom: -50px;
+            background: rgba(0, 210, 255, 0.15);
+            border-radius: 50%;
+            animation: floatUp 8s infinite linear;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(-105vh) scale(1.2); opacity: 0; }
+        }
+
+        header {
+            background-color: rgba(15, 15, 15, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #222;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent); }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Botones de Idioma */
+        .lang-group {
+            display: flex;
+            background: #111;
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .lang-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+
+        .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+
+        /* Tarjetas de Niveles */
+        .level-card {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-bg);
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .thumbnail { width: 110px; height: 62px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #000; }
+        .level-info { flex-grow: 1; }
+        .level-title { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
+        .level-creator { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; }
+
+        /* Panel exclusivo Admin */
+        .admin-panel {
+            background: #181818;
+            border: 1px dashed var(--accent);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #141414;
+            border: 1px solid #333;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            position: relative;
+        }
+
+        input, select { width: 100%; padding: 10px; margin: 8px 0 15px 0; border-radius: 6px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; }
+        
+        .profile-preview { display: flex; align-items: center; gap: 12px; background: #1c1c1c; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2a2a2a; }
+        .avatar-circle { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #333; }
+        .gd-cube-preview { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #000; }
+    </style>
+</head>
+<body>
+
+<!-- Fondo de partículas flotantes (estilo GD) -->
+<div class="gd-particles" id="particleContainer"></div>
+
+<header>
+    <h1 id="t-title">GD DEMONLIST</h1>
+    <div class="header-controls">
+        <!-- Botones de Idioma -->
+        <div class="lang-group">
+            <button class="lang-btn active" onclick="setLanguage('es', this)">ES</button>
+            <button class="lang-btn" onclick="setLanguage('en', this)">US</button>
+            <button class="lang-btn" onclick="setLanguage('ru', this)">RU</button>
+        </div>
+        <div id="authContainer">
+            <button class="btn" id="loginBtn">Iniciar sesión</button>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <!-- Panel exclusivo para Administrador -->
+    <div id="adminPanel" class="admin-panel">
+        <h3 id="t-admintitle" style="margin-top:0; color:var(--accent);">Panel de Administrador</h3>
+        <form id="levelForm">
+            <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
+            <input type="text" id="lvlCreator" placeholder="Creador" required>
+            <input type="text" id="lvlVerifier" placeholder="Verificador" required>
+            <input type="text" id="lvlId" placeholder="ID de Geometry Dash" required>
+            <input type="text" id="lvlYoutube" placeholder="ID de YouTube (ej: 9fsZ014qB3s)" required>
+            <input type="number" id="lvlRank" placeholder="Puesto en el Top (Ej: 1)" required>
+            <button type="submit" class="btn" id="t-addbtn" style="width:100%;">Añadir Nivel a la Lista</button>
+        </form>
+    </div>
+
+    <!-- Lista principal de niveles -->
+    <div id="demonList">
+        <p id="t-loading" style="text-align:center; color:var(--text-muted);">Cargando niveles...</p>
+    </div>
+</div>
+
+<!-- Modal para Crear / Editar Perfil Online -->
+<div id="profileModal" class="modal">
+    <div class="modal-content">
+        <h2 id="t-profiletitle" style="margin-top:0;">Configura tu Perfil</h2>
+        <form id="profileForm">
+            <label id="t-profilename">Tu Nombre de Usuario en GD:</label>
+            <input type="text" id="profileName" required placeholder="Ej: Player720">
+
+            <label id="t-profiletype">Elige qué deseas usar (Opcional):</label>
+            <select id="profileType" onchange="toggleProfileOptions()">
+                <option value="icons" id="t-opticons">Elegir tus iconos y colores</option>
+                <option value="image" id="t-optimage">Imagen de tu perfil</option>
+            </select>
+
+            <div id="iconsOption">
+                <label id="t-color1">Color Principal (Cubo):</label>
+                <input type="color" id="color1" value="#00d2ff" style="height:40px; padding:2px;">
+                <label id="t-color2">Color Secundario:</label>
+                <input type="color" id="color2" value="#ffffff" style="height:40px; padding:2px;">
             </div>
-            <nav class="nav">
-                <router-link class="nav__tab" to="/">
-                    <span class="type-label-lg">List</span>
-                </router-link>
-                <router-link class="nav__tab" to="/leaderboard">
-                    <span class="type-label-lg">Leaderboard</span>
-                </router-link>
-                <router-link class="nav__tab" to="/roulette">
-                    <span class="type-label-lg">Roulette</span>
-                </router-link>
-                <div class="nav__actions">
-                    <button
-                        class="nav__icon"
-                        @click.prevent="store.toggleDark()"
-                    >
-                        <img
-                            :src="store.dark ? '/assets/light.svg' : '/assets/dark.svg'"
-                            alt=""
-                        />
-                    </button>
-                    <!-- Replace the '#' with your discord server's invite-->
-                    <a class="nav__icon" href="#">
-                        <img src="/assets/discord.svg" alt="Discord Logo" />
-                    </a>
-                    <!-- List record submission form, add a link to replace the '#' when putting a link to your list submission form-->
-                    <a
-                        class="nav__cta type-label-lg"
-                        href="#"
-                        target="_blank"
-                        >Submit Record</a
-                    >
+
+            <div id="imageOption" style="display:none;">
+                <label id="t-imgurl">Link de tu imagen:</label>
+                <input type="url" id="imageUrl" placeholder="https://...">
+            </div>
+
+            <button type="submit" class="btn" id="t-saveprofile" style="width:100%; margin-top:10px;">Guardar Perfil</button>
+        </form>
+    </div>
+</div>
+
+<!-- SDKs de Firebase -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // PEGA AQUÍ TUS DATOS REALES DE FIREBASE
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_PROYECTO.firebaseapp.com",
+        projectId: "TU_PROYECTO",
+        storageBucket: "TU_PROYECTO.appspot.com",
+        messagingSenderId: "TU_ID",
+        appId: "TU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+    
+    // Fuerza a Google a mostrar el selector de cuentas para que cualquiera pueda entrar con su correo
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    const ADMIN_EMAIL = "geometrygamer720z@gmail.com";
+
+    // Diccionario de idiomas completos
+    const translations = {
+        es: {
+            pagetitle: "Mi Demonlist - GD",
+            title: "GD DEMONLIST",
+            login: "Iniciar sesión",
+            logout: "Salir",
+            admintitle: "Panel de Administrador",
+            addbtn: "Añadir Nivel a la Lista",
+            loading: "Cargando niveles...",
+            nolivels: "No hay niveles en la lista todavía.",
+            profiletitle: "Configura tu Perfil",
+            profilename: "Tu Nombre de Usuario en GD:",
+            profiletype: "Elige qué deseas usar (Opcional):",
+            opticons: "Elegir tus iconos y colores",
+            optimage: "Imagen de tu perfil",
+            color1: "Color Principal (Cubo):",
+            color2: "Color Secundario:",
+            imgurl: "Link de tu imagen:",
+            saveprofile: "Guardar Perfil",
+            verifiedBy: "Verificado por",
+            by: "Por"
+        },
+        en: {
+            pagetitle: "My GD Demonlist",
+            title: "GD DEMONLIST",
+            login: "Sign in",
+            logout: "Log out",
+            admintitle: "Admin Panel",
+            addbtn: "Add Level to List",
+            loading: "Loading levels...",
+            nolivels: "No levels in the list yet.",
+            profiletitle: "Configure Profile",
+            profilename: "Your GD Username:",
+            profiletype: "Choose what to use (Optional):",
+            opticons: "Choose your icons & colors",
+            optimage: "Profile picture",
+            color1: "Primary Color (Cube):",
+            color2: "Secondary Color:",
+            imgurl: "Image Link:",
+            saveprofile: "Save Profile",
+            verifiedBy: "Verified by",
+            by: "By"
+        },
+        ru: {
+            pagetitle: "Мой Демонлист GD",
+            title: "GD ДЕМОНЛИСТ",
+            login: "Войти",
+            logout: "Выйти",
+            admintitle: "Панель администратора",
+            addbtn: "Добавить уровень",
+            loading: "Загрузка уровней...",
+            nolivels: "В списке пока нет уровней.",
+            profiletitle: "Настройка профиля",
+            profilename: "Ваш ник в GD:",
+            profiletype: "Выберите стиль (Необязательно):",
+            opticons: "Выбрать иконки и цвета",
+            optimage: "Картинка профиля",
+            color1: "Основной цвет (Куб):",
+            color2: "Второй цвет:",
+            imgurl: "Ссылка на картинку:",
+            saveprofile: "Сохранить профиль",
+            verifiedBy: "Проверил",
+            by: "От"
+        }
+    };
+
+    let currentLang = 'es';
+
+    window.setLanguage = (lang, btnElement) => {
+        currentLang = lang;
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        if (btnElement) btnElement.classList.add('active');
+
+        document.getElementById('t-pagetitle').innerText = translations[lang].pagetitle;
+        document.getElementById('t-title').innerText = translations[lang].title;
+        document.getElementById('t-admintitle').innerText = translations[lang].admintitle;
+        document.getElementById('t-addbtn').innerText = translations[lang].addbtn;
+        const loadingEl = document.getElementById('t-loading');
+        if (loadingEl) loadingEl.innerText = translations[lang].loading;
+        document.getElementById('t-profiletitle').innerText = translations[lang].profiletitle;
+        document.getElementById('t-profilename').innerText = translations[lang].profilename;
+        document.getElementById('t-profiletype').innerText = translations[lang].profiletype;
+        document.getElementById('t-opticons').innerText = translations[lang].opticons;
+        document.getElementById('t-optimage').innerText = translations[lang].optimage;
+        document.getElementById('t-color1').innerText = translations[lang].color1;
+        document.getElementById('t-color2').innerText = translations[lang].color2;
+        document.getElementById('t-imgurl').innerText = translations[lang].imgurl;
+        document.getElementById('t-saveprofile').innerText = translations[lang].saveprofile;
+
+        const loginBtnEl = document.getElementById('loginBtn');
+        if (loginBtnEl) loginBtnEl.innerText = translations[lang].login;
+        const logoutBtnEl = document.getElementById('logoutBtn');
+        if (logoutBtnEl) logoutBtnEl.innerText = translations[lang].logout;
+
+        loadLevels();
+    };
+
+    // Generar partículas dinámicas de fondo (Estilo GD)
+    const particleContainer = document.getElementById('particleContainer');
+    for (let i = 0; i < 22; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 8 + 4 + 'px';
+        p.style.width = size;
+        p.style.height = size;
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.animationDuration = (Math.random() * 6 + 4) + 's';
+        p.style.animationDelay = (Math.random() * 5) + 's';
+        particleContainer.appendChild(p);
+    }
+
+    const triggerGoogleLogin = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error("Error al iniciar sesión:", error);
+        }
+    };
+
+    document.getElementById('loginBtn').onclick = triggerGoogleLogin;
+
+    // Detección de cuentas (Usuario Normal vs Admin)
+    onAuthStateChanged(auth, async (user) => {
+        const authContainer = document.getElementById('authContainer');
+        const adminPanel = document.getElementById('adminPanel');
+
+        if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDocRef);
+
+            if (!userSnap.exists()) {
+                document.getElementById('profileModal').style.display = 'flex';
+                document.getElementById('profileName').value = user.displayName || "";
+            }
+
+            const userData = userSnap.exists() ? userSnap.data() : null;
+            const displayName = userData ? userData.name : user.displayName;
+
+            // Renderizar avatar o cubo con colores personalizados
+            let avatarHtml = `<img src="${user.photoURL}" class="avatar-circle">`;
+            if (userData) {
+                if (userData.type === 'icons') {
+                    avatarHtml = `<div class="gd-cube-preview" style="background:${userData.color1}; color:${userData.color2};">GD</div>`;
+                } else if (userData.type === 'image' && userData.imageUrl) {
+                    avatarHtml = `<img src="${userData.imageUrl}" class="avatar-circle">`;
+                }
+            }
+
+            authContainer.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="profile-preview" onclick="openProfileModal()">
+                        ${avatarHtml}
+                        <span style="font-size:0.9rem; font-weight:bold;">${displayName}</span>
+                    </div>
+                    <button class="btn btn-danger" id="logoutBtn" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].logout}</button>
                 </div>
-            </nav>
-        </header>
-        <router-view :class="{ dark: store.dark }"></router-view>
-    </body>
+            `;
+            document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+            // Verificación estricta de administrador
+            if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                adminPanel.style.display = 'block';
+            } else {
+                adminPanel.style.display = 'none';
+                adminPanel.innerHTML = ''; // Elimina el formulario del DOM para usuarios normales
+            }
+        } else {
+            authContainer.innerHTML = `<button class="btn" id="loginBtn">${translations[currentLang].login}</button>`;
+            document.getElementById('loginBtn').onclick = triggerGoogleLogin;
+            adminPanel.style.display = 'none';
+        }
+    });
+
+    window.toggleProfileOptions = () => {
+        const type = document.getElementById('profileType').value;
+        document.getElementById('iconsOption').style.display = type === 'icons' ? 'block' : 'none';
+        document.getElementById('imageOption').style.display = type === 'image' ? 'block' : 'none';
+    };
+
+    window.openProfileModal = () => {
+        document.getElementById('profileModal').style.display = 'flex';
+    };
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const name = document.getElementById('profileName').value;
+        const type = document.getElementById('profileType').value;
+        let profileData = { name, type };
+
+        if (type === 'icons') {
+            profileData.color1 = document.getElementById('color1').value;
+            profileData.color2 = document.getElementById('color2').value;
+        } else {
+            profileData.imageUrl = document.getElementById('imageUrl').value || user.photoURL;
+        }
+
+        await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
+        document.getElementById('profileModal').style.display = 'none';
+        location.reload();
+    });
+
+    async function loadLevels() {
+        const listContainer = document.getElementById('demonList');
+        try {
+            const q = query(collection(db, "levels"), orderBy("rank", "asc"));
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                listContainer.innerHTML = `<p id="t-loading" style='text-align:center; color:var(--text-muted);'>${translations[currentLang].nolivels}</p>`;
+                return;
+            }
+
+            listContainer.innerHTML = "";
+            querySnapshot.forEach((docSnap) => {
+                const lvl = docSnap.data();
+                const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
+                const thumbUrl = `https://img.youtube.com/vi/${lvl.youtubeId}/mqdefault.jpg`;
+                const tr = translations[currentLang];
+
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                card.innerHTML = `
+                    <img src="${thumbUrl}" class="thumbnail">
+                    <div class="level-info">
+                        <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
+                        <p class="level-creator">${tr.by} ${lvl.creator} • ${tr.verifiedBy} ${lvl.verifier}</p>
+                    </div>
+                    <div class="level-points">${points} pts</div>
+                `;
+                listContainer.appendChild(card);
+            });
+        } catch (e) {
+            console.error(e);
+            listContainer.innerHTML = "<p style='text-align:center; color:red;'>Error al cargar los niveles.</p>";
+        }
+    }
+
+    const levelForm = document.getElementById('levelForm');
+    if (levelForm) {
+        levelForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user || user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+                return;
+            }
+
+            await addDoc(collection(db, "levels"), {
+                name: document.getElementById('lvlName').value,
+                creator: document.getElementById('lvlCreator').value,
+                verifier: document.getElementById('lvlVerifier').value,
+                levelId: document.getElementById('lvlId').value,
+                youtubeId: document.getElementById('lvlYoutube').value,
+                rank: Number(document.getElementById('lvlRank').value)
+            });
+
+            levelForm.reset();
+            loadLevels();
+        });
+    }
+
+    loadLevels();
+</script>
+</body>
 </html>
