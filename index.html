@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="t-pagetitle">Mi Demonlist - GD</title>
+    <title id="t-pagetitle">La Remake List - GD</title>
     <style>
         :root {
             --bg-color: #080808;
@@ -174,7 +174,7 @@
 <div class="gd-particles" id="particleContainer"></div>
 
 <header>
-    <h1 id="t-title">GD DEMONLIST</h1>
+    <h1 id="t-title">LA REMAKE LIST</h1>
     <div class="header-controls">
         <!-- Botones de Idioma -->
         <div class="lang-group">
@@ -204,9 +204,7 @@
     </div>
 
     <!-- Lista principal de niveles -->
-    <div id="demonList">
-        <p id="t-loading" style="text-align:center; color:var(--text-muted);">Cargando niveles...</p>
-    </div>
+    <div id="demonList"></div>
 </div>
 
 <!-- Modal para Crear / Editar Perfil Online -->
@@ -261,7 +259,6 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
     
-    // Fuerza a Google a mostrar el selector de cuentas para que cualquiera pueda entrar con su correo
     provider.setCustomParameters({ prompt: 'select_account' });
 
     const ADMIN_EMAIL = "geometrygamer720z@gmail.com";
@@ -269,13 +266,12 @@
     // Diccionario de idiomas completos
     const translations = {
         es: {
-            pagetitle: "Mi Demonlist - GD",
-            title: "GD DEMONLIST",
+            pagetitle: "La Remake List - GD",
+            title: "LA REMAKE LIST",
             login: "Iniciar sesión",
             logout: "Salir",
             admintitle: "Panel de Administrador",
             addbtn: "Añadir Nivel a la Lista",
-            loading: "Cargando niveles...",
             nolivels: "No hay niveles en la lista todavía.",
             profiletitle: "Configura tu Perfil",
             profilename: "Tu Nombre de Usuario en GD:",
@@ -290,13 +286,12 @@
             by: "Por"
         },
         en: {
-            pagetitle: "My GD Demonlist",
-            title: "GD DEMONLIST",
+            pagetitle: "La Remake List - GD",
+            title: "LA REMAKE LIST",
             login: "Sign in",
             logout: "Log out",
             admintitle: "Admin Panel",
             addbtn: "Add Level to List",
-            loading: "Loading levels...",
             nolivels: "No levels in the list yet.",
             profiletitle: "Configure Profile",
             profilename: "Your GD Username:",
@@ -311,13 +306,12 @@
             by: "By"
         },
         ru: {
-            pagetitle: "Мой Демонлист GD",
-            title: "GD ДЕМОНЛИСТ",
+            pagetitle: "La Remake List - GD",
+            title: "LA REMAKE LIST",
             login: "Войти",
             logout: "Выйти",
             admintitle: "Панель администратора",
             addbtn: "Добавить уровень",
-            loading: "Загрузка уровней...",
             nolivels: "В списке пока нет уровней.",
             profiletitle: "Настройка профиля",
             profilename: "Ваш ник в GD:",
@@ -344,8 +338,6 @@
         document.getElementById('t-title').innerText = translations[lang].title;
         document.getElementById('t-admintitle').innerText = translations[lang].admintitle;
         document.getElementById('t-addbtn').innerText = translations[lang].addbtn;
-        const loadingEl = document.getElementById('t-loading');
-        if (loadingEl) loadingEl.innerText = translations[lang].loading;
         document.getElementById('t-profiletitle').innerText = translations[lang].profiletitle;
         document.getElementById('t-profilename').innerText = translations[lang].profilename;
         document.getElementById('t-profiletype').innerText = translations[lang].profiletype;
@@ -383,6 +375,7 @@
             await signInWithPopup(auth, provider);
         } catch (error) {
             console.error("Error al iniciar sesión:", error);
+            alert("Error al iniciar sesión: " + error.message);
         }
     };
 
@@ -405,7 +398,6 @@
             const userData = userSnap.exists() ? userSnap.data() : null;
             const displayName = userData ? userData.name : user.displayName;
 
-            // Renderizar avatar o cubo con colores personalizados
             let avatarHtml = `<img src="${user.photoURL}" class="avatar-circle">`;
             if (userData) {
                 if (userData.type === 'icons') {
@@ -426,12 +418,10 @@
             `;
             document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
-            // Verificación estricta de administrador
             if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
                 adminPanel.style.display = 'block';
             } else {
                 adminPanel.style.display = 'none';
-                adminPanel.innerHTML = ''; // Elimina el formulario del DOM para usuarios normales
             }
         } else {
             authContainer.innerHTML = `<button class="btn" id="loginBtn">${translations[currentLang].login}</button>`;
@@ -477,12 +467,11 @@
             const q = query(collection(db, "levels"), orderBy("rank", "asc"));
             const querySnapshot = await getDocs(q);
             
+            listContainer.innerHTML = "";
             if (querySnapshot.empty) {
-                listContainer.innerHTML = `<p id="t-loading" style='text-align:center; color:var(--text-muted);'>${translations[currentLang].nolivels}</p>`;
-                return;
+                return; // No muestra texto de carga ni de vacío si no hay niveles
             }
 
-            listContainer.innerHTML = "";
             querySnapshot.forEach((docSnap) => {
                 const lvl = docSnap.data();
                 const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
