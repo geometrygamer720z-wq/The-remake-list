@@ -244,7 +244,6 @@
     import { 
         getAuth, 
         GoogleAuthProvider, 
-        signInWithPopup, 
         signInWithRedirect, 
         getRedirectResult, 
         setPersistence, 
@@ -269,19 +268,18 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
     
-    // Solicitar correo y perfil básico y mostrar selector de cuentas
     provider.addScope('email');
     provider.addScope('profile');
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // Forzar persistencia local en el dispositivo (la sesión no se cierra al salir o recargar)
+    // Mantener la sesión guardada permanentemente en el dispositivo
     setPersistence(auth, browserLocalPersistence).catch((err) => {
         console.error("Error de persistencia:", err);
     });
 
-    // Capturar resultado si el navegador móvil usó redirección en lugar de ventana emergente
+    // Procesar el resultado al regresar de la redirección de Google
     getRedirectResult(auth).catch((error) => {
-        if (error.code !== 'auth/null-user') {
+        if (error.code && error.code !== 'auth/null-user') {
             console.error("Error en redirección de Google:", error);
             if (error.code === 'auth/unauthorized-domain') {
                 alert("Error: Debes añadir este dominio (" + window.location.hostname + ") en Firebase Console -> Authentication -> Settings -> Authorized domains.");
@@ -291,7 +289,6 @@
 
     const ADMIN_EMAIL = "geometrygamer720z@gmail.com";
 
-    // Diccionario de idiomas completos
     const translations = {
         es: {
             pagetitle: "La Remake List - GD",
@@ -300,7 +297,6 @@
             logout: "Salir",
             admintitle: "Panel de Administrador",
             addbtn: "Añadir Nivel a la Lista",
-            nolivels: "No hay niveles en la lista todavía.",
             profiletitle: "Configura tu Perfil",
             profilename: "Tu Nombre de Usuario en GD:",
             profiletype: "Elige qué deseas usar (Opcional):",
@@ -320,7 +316,6 @@
             logout: "Log out",
             admintitle: "Admin Panel",
             addbtn: "Add Level to List",
-            nolivels: "No levels in the list yet.",
             profiletitle: "Configure Profile",
             profilename: "Your GD Username:",
             profiletype: "Choose what to use (Optional):",
@@ -340,7 +335,6 @@
             logout: "Выйти",
             admintitle: "Панель администратора",
             addbtn: "Добавить уровень",
-            nolivels: "В списке пока нет уровней.",
             profiletitle: "Настройка профиля",
             profilename: "Ваш ник в GD:",
             profiletype: "Выберите стиль (Необязательно):",
@@ -384,7 +378,7 @@
         loadLevels();
     };
 
-    // Generar partículas dinámicas de fondo (Estilo GD)
+    // Partículas de fondo
     const particleContainer = document.getElementById('particleContainer');
     for (let i = 0; i < 22; i++) {
         const p = document.createElement('div');
@@ -398,37 +392,19 @@
         particleContainer.appendChild(p);
     }
 
-    // Sistema híbrido robusto de inicio de sesión (Popup con respaldo automático a Redirect para móviles)
+    // Método de inicio de sesión por Redirección (evita que se abra YouTube o falle en móviles)
     const triggerGoogleLogin = async () => {
         try {
             await setPersistence(auth, browserLocalPersistence);
-            await signInWithPopup(auth, provider);
+            await signInWithRedirect(auth, provider);
         } catch (error) {
-            console.warn("Popup bloqueado o no soportado, cambiando a redirección:", error.code);
-            if (
-                error.code === 'auth/popup-blocked' || 
-                error.code === 'auth/popup-closed-by-user' || 
-                error.code === 'auth/cancelled-popup-request' ||
-                error.code === 'auth/operation-not-supported-in-this-environment'
-            ) {
-                try {
-                    await signInWithRedirect(auth, provider);
-                } catch (redirectError) {
-                    alert("Error al iniciar sesión: " + redirectError.message);
-                }
-            } else if (error.code === 'auth/unauthorized-domain') {
-                alert("Dominio no autorizado. Añade '" + window.location.hostname + "' en Firebase Console > Authentication > Settings > Authorized domains.");
-            } else if (error.code === 'auth/invalid-api-key') {
-                alert("Falta configurar tus credenciales reales de Firebase en el código (firebaseConfig).");
-            } else {
-                alert("Error de inicio de sesión: " + error.message);
-            }
+            console.error("Error en redirección:", error);
+            alert("Error al iniciar sesión: " + error.message);
         }
     };
 
     document.getElementById('loginBtn').onclick = triggerGoogleLogin;
 
-    // Detección de cuentas (Usuario Normal vs Admin) y restauración automática al abrir la página
     onAuthStateChanged(auth, async (user) => {
         const authContainer = document.getElementById('authContainer');
         const adminPanel = document.getElementById('adminPanel');
@@ -498,7 +474,7 @@
         const user = auth.currentUser;
         if (!user) return;
 
-        const name = document.getElementById('profileName').value;
+        const name = document.getElementById('profileName.value') || document.getElementById('profileName').value;
         const type = document.getElementById('profileType').value;
         let profileData = { name, type };
 
