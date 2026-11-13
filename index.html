@@ -111,9 +111,33 @@
         }
         .btn:hover { opacity: 0.85; }
         .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-        .btn-admin { background: linear-gradient(135deg, #f7b733, #fc4a1a); color: #000; }
+        .btn-edit { background: linear-gradient(135deg, #f7b733, #f39c12); color: #000; padding: 5px 10px; font-size: 0.8rem; }
+        .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; }
+        .btn-copy:hover { background: var(--accent); color: #000; }
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+
+        /* Botón Flotante "+" para Admin */
+        .fab-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            z-index: 999;
+            transition: transform 0.2s;
+        }
+        .fab-btn:hover { transform: scale(1.1); }
 
         /* Tarjetas de Niveles */
         .level-card {
@@ -125,22 +149,16 @@
             border-radius: 10px;
             border-left: 4px solid var(--accent);
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.2s;
         }
-        .thumbnail { width: 110px; height: 62px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #000; }
+        .level-card:hover { transform: scale(1.01); }
+        .thumbnail { width: 110px; height: 62px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #000; flex-shrink: 0; }
         .level-info { flex-grow: 1; }
         .level-title { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
         .level-creator { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
-        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; }
-
-        /* Panel exclusivo Admin */
-        .admin-panel {
-            background: #181818;
-            border: 1px dashed var(--accent);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            display: none;
-        }
+        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
+        .level-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
 
         .modal {
             display: none;
@@ -160,6 +178,8 @@
             max-width: 450px;
             width: 90%;
             position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); }
@@ -167,6 +187,14 @@
         
         .profile-preview { display: flex; align-items: center; gap: 12px; background: #1c1c1c; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2a2a2a; }
         .avatar-circle { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #333; }
+        
+        .image-source-selector {
+            background: #1c1c1c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+        }
     </style>
 </head>
 <body>
@@ -190,22 +218,43 @@
 </header>
 
 <div class="container">
-    <!-- Panel exclusivo para Administrador -->
-    <div id="adminPanel" class="admin-panel">
-        <h3 id="t-admintitle" style="margin-top:0; color:var(--accent);">Panel de Administrador</h3>
+    <!-- Lista principal de niveles -->
+    <div id="demonList"></div>
+</div>
+
+<!-- Botón Flotante "+" (Solo visible para la cuenta Admin asignada) -->
+<button class="fab-btn" id="fabAddBtn" onclick="openAddLevelModal()" style="display: none;">+</button>
+
+<!-- Modal Añadir Nivel (Admin Mini Ventana) -->
+<div id="addLevelModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeAddLevelModal()">&times;</span>
+        <h3 id="t-addlevelmodaltitle" style="margin-top:0; color:var(--accent);">Añadir Nivel</h3>
         <form id="levelForm">
             <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
             <input type="text" id="lvlCreator" placeholder="Creador" required>
             <input type="text" id="lvlVerifier" placeholder="Verificador" required>
-            <input type="text" id="lvlId" placeholder="ID de Geometry Dash" required>
-            <input type="text" id="lvlYoutube" placeholder="ID de YouTube (ej: 9fsZ014qB3s)" required>
+            <input type="text" id="lvlId" placeholder="ID del nivel de Geometry Dash" required>
             <input type="number" id="lvlRank" placeholder="Puesto en el Top (Ej: 1)" required>
+            <input type="url" id="lvlYoutube" placeholder="URL del video de YouTube" required>
+
+            <!-- Categoría de Imágenes Exclusiva -->
+            <div class="image-source-selector">
+                <label id="t-imgsource" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Categoría de Imágenes:</label>
+                <select id="imageSourceType" onchange="toggleImageSourceInputs()" style="margin-bottom:10px;">
+                    <option value="youtube" id="t-optyt">Usar miniatura de YouTube</option>
+                    <option value="custom" id="t-optcustom">Subir imagen personalizada</option>
+                </select>
+
+                <div id="customImageContainer" style="display:none;">
+                    <label id="t-levellogo" style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">Seleccionar archivo de imagen:</label>
+                    <input type="file" id="lvlLogoFile" accept="image/*" style="color: var(--text-muted);">
+                </div>
+            </div>
+
             <button type="submit" class="btn" id="t-addbtn" style="width:100%;">Añadir Nivel a la Lista</button>
         </form>
     </div>
-
-    <!-- Lista principal de niveles -->
-    <div id="demonList"></div>
 </div>
 
 <!-- Modal Principal de Autenticación / Registro / Inicio de Sesión -->
@@ -251,22 +300,58 @@
     </div>
 </div>
 
-<!-- Modal de Contraseña de Administrador -->
-<div id="adminModal" class="modal">
+<!-- Modal para Editar Nivel (Admin) -->
+<div id="editLevelModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeAdminModal()">&times;</span>
-        <h3 style="margin-top:0;" id="t-admintitlemodal">Acceso de Administrador</h3>
-        <form id="adminPassForm">
-            <input type="password" id="adminPassInput" required placeholder="Contraseña de Admin">
-            <button type="submit" class="btn btn-admin" id="t-adminbtnsubmit" style="width:100%;">Verificar</button>
+        <span class="close-btn" onclick="closeEditModal()">&times;</span>
+        <h3 style="margin-top:0; color:var(--accent);" id="t-editleveltitle">Editar Nivel</h3>
+        <form id="editLevelForm">
+            <input type="hidden" id="editLvlDocId">
+            <input type="text" id="editLvlName" placeholder="Nombre del nivel" required>
+            <input type="text" id="editLvlCreator" placeholder="Creador" required>
+            <input type="text" id="editLvlVerifier" placeholder="Verificador" required>
+            <input type="text" id="editLvlId" placeholder="ID del nivel" required>
+            <input type="number" id="editLvlRank" placeholder="Puesto en el Top" required>
+            <input type="url" id="editLvlYoutube" placeholder="URL del video de YouTube" required>
+            
+            <div class="image-source-selector" style="margin-top: 10px;">
+                <label id="t-editimgsource" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Categoría de Imágenes:</label>
+                <select id="editImageSourceType" onchange="toggleEditImageSourceInputs()" style="margin-bottom:10px;">
+                    <option value="youtube" id="t-editoptyt">Usar miniatura de YouTube</option>
+                    <option value="custom" id="t-editoptcustom">Subir imagen personalizada</option>
+                </select>
+
+                <div id="editCustomImageContainer" style="display:none;">
+                    <label id="t-editlevellogo" style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">Cambiar imagen de presentación:</label>
+                    <input type="file" id="editLvlLogoFile" accept="image/*" style="color: var(--text-muted);">
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="t-updatebtn" style="width:100%; margin-top:10px;">Guardar Cambios</button>
         </form>
+    </div>
+</div>
+
+<!-- Modal para Ver Detalles / ID / Copiar ID -->
+<div id="levelDetailModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close-btn" onclick="closeDetailModal()">&times;</span>
+        <h3 id="modalLevelTitle" style="color:var(--accent); margin-top:0;"></h3>
+        <p id="modalLevelCreators" style="color:var(--text-muted); font-size: 0.9rem;"></p>
+        
+        <div style="background:#1c1c1c; padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: bold;" id="modalLevelIdText">ID: </span>
+            <button class="btn-copy" id="t-copybtn" onclick="copyLevelId()">Copiar ID</button>
+        </div>
+
+        <a id="modalYoutubeLink" href="#" target="_blank" class="btn" style="display: block; text-decoration: none; text-align: center;" id="t-watchyt">Ver video en YouTube</a>
     </div>
 </div>
 
 <!-- SDK de Firebase Firestore -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "TU_API_KEY",
@@ -280,7 +365,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const ADMIN_PASSWORD = "6767XDXD";
+    let selectedLevelIdForCopy = "";
 
     const translations = {
         es: {
@@ -288,11 +373,16 @@
             title: "LA REMAKE LIST",
             login: "Iniciar sesión",
             logout: "Cerrar sesión",
-            adminbtntext: "Admin",
-            admintitle: "Panel de Administrador",
+            addlevelmodaltitle: "Añadir Nivel",
             addbtn: "Añadir Nivel a la Lista",
-            admintitlemodal: "Acceso de Administrador",
-            adminbtnsubmit: "Verificar",
+            imgsource: "Categoría de Imágenes:",
+            optyt: "Usar miniatura de YouTube",
+            optcustom: "Subir imagen personalizada",
+            levellogo: "Seleccionar archivo de imagen:",
+            editimgsource: "Categoría de Imágenes:",
+            editoptyt: "Usar miniatura de YouTube",
+            editoptcustom: "Subir imagen personalizada",
+            editlevellogo: "Cambiar imagen de presentación:",
             authmodaltitle: "Iniciar Sesión / Registrarse",
             authname: "Tu Nombre de Usuario en GD:",
             placeholdername: "Introducir",
@@ -305,6 +395,12 @@
             profileimg: "Cambiar imagen de perfil:",
             saveprofile: "Actualizar Perfil",
             deleteprofile: "Eliminar Cuenta",
+            editleveltitle: "Editar Nivel",
+            updatebtn: "Guardar Cambios",
+            editbtntext: "Editar",
+            deletebtntext: "Eliminar",
+            copybtntext: "Copiar ID",
+            watchyt: "Ver video en YouTube",
             verifiedBy: "Verificado por",
             by: "Por"
         },
@@ -313,11 +409,16 @@
             title: "LA REMAKE LIST",
             login: "Sign in",
             logout: "Log out",
-            adminbtntext: "Admin",
-            admintitle: "Admin Panel",
+            addlevelmodaltitle: "Add Level",
             addbtn: "Add Level to List",
-            admintitlemodal: "Admin Access",
-            adminbtnsubmit: "Verify",
+            imgsource: "Image Category:",
+            optyt: "Use YouTube thumbnail",
+            optcustom: "Upload custom image",
+            levellogo: "Select image file:",
+            editimgsource: "Image Category:",
+            editoptyt: "Use YouTube thumbnail",
+            editoptcustom: "Upload custom image",
+            editlevellogo: "Change presentation image:",
             authmodaltitle: "Sign In / Register",
             authname: "Your GD Username:",
             placeholdername: "Enter",
@@ -330,6 +431,12 @@
             profileimg: "Change profile picture:",
             saveprofile: "Update Profile",
             deleteprofile: "Delete Account",
+            editleveltitle: "Edit Level",
+            updatebtn: "Save Changes",
+            editbtntext: "Edit",
+            deletebtntext: "Delete",
+            copybtntext: "Copy ID",
+            watchyt: "Watch video on YouTube",
             verifiedBy: "Verified by",
             by: "By"
         },
@@ -338,11 +445,16 @@
             title: "LA REMAKE LIST",
             login: "Войти",
             logout: "Выйти",
-            adminbtntext: "Админ",
-            admintitle: "Панель администратора",
+            addlevelmodaltitle: "Добавить уровень",
             addbtn: "Добавить уровень",
-            admintitlemodal: "Доступ администратора",
-            adminbtnsubmit: "Проверить",
+            imgsource: "Категория изображений:",
+            optyt: "Использовать миниатюру YouTube",
+            optcustom: "Загрузить свое изображение",
+            levellogo: "Выберите файл изображения:",
+            editimgsource: "Категория изображений:",
+            editoptyt: "Использовать миниатюру YouTube",
+            editoptcustom: "Загрузить свое изображение",
+            editlevellogo: "Изменить картинку презентации:",
             authmodaltitle: "Вход / Регистрация",
             authname: "Ваш ник в GD:",
             placeholdername: "Ввести",
@@ -355,6 +467,12 @@
             profileimg: "Изменить аватарку:",
             saveprofile: "Обновить профиль",
             deleteprofile: "Удалить аккаунт",
+            editleveltitle: "Редактировать уровень",
+            updatebtn: "Сохранить изменения",
+            editbtntext: "Изм.",
+            deletebtntext: "Удалить",
+            copybtntext: "Копировать ID",
+            watchyt: "Смотреть на YouTube",
             verifiedBy: "Проверил",
             by: "От"
         }
@@ -369,10 +487,16 @@
 
         document.getElementById('t-pagetitle').innerText = translations[lang].pagetitle;
         document.getElementById('t-title').innerText = translations[lang].title;
-        document.getElementById('t-admintitle').innerText = translations[lang].admintitle;
+        document.getElementById('t-addlevelmodaltitle').innerText = translations[lang].addlevelmodaltitle;
         document.getElementById('t-addbtn').innerText = translations[lang].addbtn;
-        document.getElementById('t-admintitlemodal').innerText = translations[lang].admintitlemodal;
-        document.getElementById('t-adminbtnsubmit').innerText = translations[lang].adminbtnsubmit;
+        document.getElementById('t-imgsource').innerText = translations[lang].imgsource;
+        document.getElementById('t-optyt').innerText = translations[lang].optyt;
+        document.getElementById('t-optcustom').innerText = translations[lang].optcustom;
+        document.getElementById('t-levellogo').innerText = translations[lang].levellogo;
+        document.getElementById('t-editimgsource').innerText = translations[lang].editimgsource;
+        document.getElementById('t-editoptyt').innerText = translations[lang].editoptyt;
+        document.getElementById('t-editoptcustom').innerText = translations[lang].editoptcustom;
+        document.getElementById('t-editlevellogo').innerText = translations[lang].editlevellogo;
         document.getElementById('t-authmodaltitle').innerText = translations[lang].authmodaltitle;
         document.getElementById('t-authname').innerText = translations[lang].authname;
         document.getElementById('authName').placeholder = translations[lang].placeholdername;
@@ -386,13 +510,15 @@
         document.getElementById('t-profileimg').innerText = translations[lang].profileimg;
         document.getElementById('t-saveprofile').innerText = translations[lang].saveprofile;
         document.getElementById('t-deleteprofile').innerText = translations[lang].deleteprofile;
+        document.getElementById('t-editleveltitle').innerText = translations[lang].editleveltitle;
+        document.getElementById('t-updatebtn').innerText = translations[lang].updatebtn;
+        document.getElementById('t-copybtn').innerText = translations[lang].copybtntext;
+        document.getElementById('t-watchyt').innerText = translations[lang].watchyt;
 
         const loginBtnEl = document.getElementById('loginBtn');
         if (loginBtnEl) loginBtnEl.innerText = translations[lang].login;
         const logoutBtnEl = document.getElementById('logoutBtn');
         if (logoutBtnEl) logoutBtnEl.innerText = translations[lang].logout;
-        const adminBtnEl = document.getElementById('adminAccessBtn');
-        if (adminBtnEl) adminBtnEl.innerText = translations[lang].adminbtntext;
 
         loadLevels();
     };
@@ -411,25 +537,40 @@
         particleContainer.appendChild(p);
     }
 
+    function extractYouTubeId(url) {
+        if (!url) return '';
+        let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        return match ? match[1] : url;
+    }
+
+    // Alternar campos según la categoría de imagen seleccionada
+    window.toggleImageSourceInputs = () => {
+        const type = document.getElementById('imageSourceType').value;
+        document.getElementById('customImageContainer').style.display = (type === 'custom') ? 'block' : 'none';
+    };
+
+    window.toggleEditImageSourceInputs = () => {
+        const type = document.getElementById('editImageSourceType').value;
+        document.getElementById('editCustomImageContainer').style.display = (type === 'custom') ? 'block' : 'none';
+    };
+
     function checkLocalStorageSession() {
         const activeUser = localStorage.getItem('gd_active_user');
         const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
         const adminAccount = localStorage.getItem('gd_admin_account');
         const authContainer = document.getElementById('authContainer');
-        const adminPanel = document.getElementById('adminPanel');
+        const fabAddBtn = document.getElementById('fabAddBtn');
 
         if (activeUser && allAccounts[activeUser]) {
             const profile = allAccounts[activeUser];
             let avatarHtml = `<img src="${profile.imageBase64 || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
 
-            let adminButtonHtml = '';
             const isThisAccountAdmin = (adminAccount === activeUser);
 
             if (isThisAccountAdmin) {
-                adminPanel.style.display = 'block';
+                fabAddBtn.style.display = 'flex';
             } else {
-                adminPanel.style.display = 'none';
-                adminButtonHtml = `<button class="btn btn-admin" id="adminAccessBtn" onclick="openAdminModal()" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].adminbtntext}</button>`;
+                fabAddBtn.style.display = 'none';
             }
 
             authContainer.innerHTML = `
@@ -438,14 +579,14 @@
                         ${avatarHtml}
                         <span style="font-size:0.9rem; font-weight:bold;">${profile.name}</span>
                     </div>
-                    ${adminButtonHtml}
                     <button class="btn btn-danger" onclick="logoutProfile()" style="padding:6px 10px; font-size:0.8rem;">${translations[currentLang].logout}</button>
                 </div>
             `;
         } else {
             authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">${translations[currentLang].login}</button>`;
-            adminPanel.style.display = 'none';
+            fabAddBtn.style.display = 'none';
         }
+        loadLevels();
     }
 
     window.openAuthModal = () => {
@@ -484,8 +625,7 @@
                 }
                 const reader = new FileReader();
                 reader.onload = function(uploadEvent) {
-                    const base64Image = uploadEvent.target.result;
-                    registerNewAccount(name, pass, base64Image);
+                    registerNewAccount(name, pass, uploadEvent.target.result);
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -538,8 +678,7 @@
             }
             const reader = new FileReader();
             reader.onload = function(uploadEvent) {
-                const base64Image = uploadEvent.target.result;
-                updateAccountData(activeUser, newName, newPass, base64Image, allAccounts);
+                updateAccountData(activeUser, newName, newPass, uploadEvent.target.result, allAccounts);
             };
             reader.readAsDataURL(file);
         } else {
@@ -557,8 +696,7 @@
 
         if (oldName !== newName) {
             delete allAccounts[oldName];
-            const adminAccount = localStorage.getItem('gd_admin_account');
-            if (adminAccount === oldName) {
+            if (localStorage.getItem('gd_admin_account') === oldName) {
                 localStorage.setItem('gd_admin_account', newName);
             }
         }
@@ -578,8 +716,7 @@
                 delete allAccounts[activeUser];
                 localStorage.setItem('gd_accounts', JSON.stringify(allAccounts));
             }
-            const adminAccount = localStorage.getItem('gd_admin_account');
-            if (adminAccount === activeUser) {
+            if (localStorage.getItem('gd_admin_account') === activeUser) {
                 localStorage.removeItem('gd_admin_account');
             }
             localStorage.removeItem('gd_active_user');
@@ -595,32 +732,25 @@
         location.reload();
     };
 
-    window.openAdminModal = () => {
-        document.getElementById('adminModal').style.display = 'flex';
+    // Control de la mini ventana de añadir nivel (Botón "+")
+    window.openAddLevelModal = () => {
+        document.getElementById('levelForm').reset();
+        document.getElementById('imageSourceType').value = 'youtube';
+        toggleImageSourceInputs();
+        document.getElementById('addLevelModal').style.display = 'flex';
     };
 
-    window.closeAdminModal = () => {
-        document.getElementById('adminModal').style.display = 'none';
+    window.closeAddLevelModal = () => {
+        document.getElementById('addLevelModal').style.display = 'none';
     };
 
-    document.getElementById('adminPassForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const pass = document.getElementById('adminPassInput').value;
-        const activeUser = localStorage.getItem('gd_active_user');
-
-        if (pass === ADMIN_PASSWORD) {
-            localStorage.setItem('gd_admin_account', activeUser);
-            alert("¡Acceso de administrador vinculado permanentemente a esta cuenta!");
-            closeAdminModal();
-            checkLocalStorageSession();
-        } else {
-            alert("Contraseña incorrecta.");
-        }
-        document.getElementById('adminPassInput').value = '';
-    });
-
+    // Funcionalidad de Niveles y Acciones
     async function loadLevels() {
         const listContainer = document.getElementById('demonList');
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        const isAdmin = (adminAccount === activeUser);
+
         try {
             const q = query(collection(db, "levels"), orderBy("rank", "asc"));
             const querySnapshot = await getDocs(q);
@@ -631,20 +761,42 @@
             }
 
             querySnapshot.forEach((docSnap) => {
+                const docId = docSnap.id;
                 const lvl = docSnap.data();
                 const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
-                const thumbUrl = `https://img.youtube.com/vi/${lvl.youtubeId}/mqdefault.jpg`;
+                
+                // Determinar la imagen según la categoría elegida
+                const ytId = extractYouTubeId(lvl.youtubeUrl);
+                const ytThumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
+                const thumbUrl = (lvl.imageSource === 'custom' && lvl.logoBase64) ? lvl.logoBase64 : ytThumb;
+                
                 const tr = translations[currentLang];
 
                 const card = document.createElement('div');
                 card.className = 'level-card';
+                card.onclick = (e) => {
+                    if (e.target.tagName === 'BUTTON') return;
+                    openDetailModal(lvl.name, lvl.creator, lvl.verifier, lvl.levelId, lvl.youtubeUrl);
+                };
+
+                let adminButtonsHtml = '';
+                if (isAdmin) {
+                    adminButtonsHtml = `
+                        <div class="level-actions">
+                            <button class="btn btn-edit" onclick="openEditModal('${docId}', '${encodeURIComponent(lvl.name)}', '${encodeURIComponent(lvl.creator)}', '${encodeURIComponent(lvl.verifier)}', '${lvl.levelId}', '${encodeURIComponent(lvl.youtubeUrl)}', ${lvl.rank}, '${lvl.imageSource || 'youtube'}')">${tr.editbtntext}</button>
+                            <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="deleteLevel('${docId}')">${tr.deletebtntext}</button>
+                        </div>
+                    `;
+                }
+
                 card.innerHTML = `
-                    <img src="${thumbUrl}" class="thumbnail">
+                    ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
                     <div class="level-info">
                         <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
                         <p class="level-creator">${tr.by} ${lvl.creator} • ${tr.verifiedBy} ${lvl.verifier}</p>
                     </div>
                     <div class="level-points">${points} pts</div>
+                    ${adminButtonsHtml}
                 `;
                 listContainer.appendChild(card);
             });
@@ -654,6 +806,117 @@
         }
     }
 
+    // Modal de Detalle de Nivel
+    window.openDetailModal = (name, creator, verifier, levelId, youtubeUrl) => {
+        document.getElementById('modalLevelTitle').innerText = name;
+        document.getElementById('modalLevelCreators').innerText = `Por ${creator} • Verificado por ${verifier}`;
+        document.getElementById('modalLevelIdText').innerText = `ID: ${levelId}`;
+        document.getElementById('modalYoutubeLink').href = youtubeUrl;
+        selectedLevelIdForCopy = levelId;
+        document.getElementById('levelDetailModal').style.display = 'flex';
+    };
+
+    window.closeDetailModal = () => {
+        document.getElementById('levelDetailModal').style.display = 'none';
+    };
+
+    window.copyLevelId = () => {
+        navigator.clipboard.writeText(selectedLevelIdForCopy).then(() => {
+            alert("¡ID copiado al portapapeles!");
+        }).catch(err => {
+            console.error("Error al copiar: ", err);
+        });
+    };
+
+    // Funciones de Edición y Eliminación de Niveles (Admin)
+    window.openEditModal = (docId, name, creator, verifier, levelId, youtubeUrl, rank, imageSource) => {
+        document.getElementById('editLvlDocId').value = docId;
+        document.getElementById('editLvlName').value = decodeURIComponent(name);
+        document.getElementById('editLvlCreator').value = decodeURIComponent(creator);
+        document.getElementById('editLvlVerifier').value = decodeURIComponent(verifier);
+        document.getElementById('editLvlId').value = levelId;
+        document.getElementById('editLvlYoutube').value = decodeURIComponent(youtubeUrl);
+        document.getElementById('editLvlRank').value = rank;
+        document.getElementById('editImageSourceType').value = imageSource;
+        toggleEditImageSourceInputs();
+        document.getElementById('editLvlLogoFile').value = "";
+        document.getElementById('editLevelModal').style.display = 'flex';
+    };
+
+    window.closeEditModal = () => {
+        document.getElementById('editLevelModal').style.display = 'none';
+    };
+
+    document.getElementById('editLevelForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) return;
+
+        const docId = document.getElementById('editLvlDocId').value;
+        const imageSource = document.getElementById('editImageSourceType').value;
+        const fileInput = document.getElementById('editLvlLogoFile');
+
+        const updateData = {
+            name: document.getElementById('editLvlName').value,
+            creator: document.getElementById('editLvlCreator').value,
+            verifier: document.getElementById('editLvlVerifier').value,
+            levelId: document.getElementById('editLvlId').value,
+            youtubeUrl: document.getElementById('editLvlYoutube').value,
+            rank: Number(document.getElementById('editLvlRank').value),
+            imageSource: imageSource
+        };
+
+        if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (!file.type.startsWith('image/')) {
+                alert("Por favor selecciona un archivo de imagen válido.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function(uploadEvent) {
+                updateData.logoBase64 = uploadEvent.target.result;
+                await saveEditedLevel(docId, updateData);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            if (imageSource === 'youtube') {
+                updateData.logoBase64 = '';
+            }
+            await saveEditedLevel(docId, updateData);
+        }
+    });
+
+    async function saveEditedLevel(docId, updateData) {
+        try {
+            const levelRef = doc(db, "levels", docId);
+            await updateDoc(levelRef, updateData);
+            closeEditModal();
+            loadLevels();
+            alert("¡Nivel actualizado con éxito!");
+        } catch (err) {
+            console.error("Error al actualizar nivel: ", err);
+            alert("Error al actualizar el nivel.");
+        }
+    }
+
+    window.deleteLevel = async (docId) => {
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) return;
+
+        if (confirm("¿Estás seguro de que deseas eliminar este nivel de la lista?")) {
+            try {
+                await deleteDoc(doc(db, "levels", docId));
+                loadLevels();
+                alert("Nivel eliminado correctamente.");
+            } catch (err) {
+                console.error("Error al eliminar nivel: ", err);
+                alert("Error al eliminar el nivel.");
+            }
+        }
+    };
+
     const levelForm = document.getElementById('levelForm');
     if (levelForm) {
         levelForm.addEventListener('submit', async (e) => {
@@ -662,22 +925,51 @@
             const adminAccount = localStorage.getItem('gd_admin_account');
             if (adminAccount !== activeUser) return;
 
-            await addDoc(collection(db, "levels"), {
+            const imageSource = document.getElementById('imageSourceType').value;
+            const fileInput = document.getElementById('lvlLogoFile');
+            const levelData = {
                 name: document.getElementById('lvlName').value,
                 creator: document.getElementById('lvlCreator').value,
                 verifier: document.getElementById('lvlVerifier').value,
                 levelId: document.getElementById('lvlId').value,
-                youtubeId: document.getElementById('lvlYoutube').value,
-                rank: Number(document.getElementById('lvlRank').value)
-            });
+                youtubeUrl: document.getElementById('lvlYoutube').value,
+                rank: Number(document.getElementById('lvlRank').value),
+                imageSource: imageSource,
+                logoBase64: ''
+            };
 
-            levelForm.reset();
-            loadLevels();
+            if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert("Por favor selecciona un archivo de imagen válido.");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async function(uploadEvent) {
+                    levelData.logoBase64 = uploadEvent.target.result;
+                    await saveNewLevel(levelData);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await saveNewLevel(levelData);
+            }
         });
     }
 
+    async function saveNewLevel(levelData) {
+        try {
+            await addDoc(collection(db, "levels"), levelData);
+            closeAddLevelModal();
+            levelForm.reset();
+            loadLevels();
+            alert("¡Nivel añadido con éxito!");
+        } catch (err) {
+            console.error("Error al añadir nivel: ", err);
+            alert("Error al añadir el nivel.");
+        }
+    }
+
     checkLocalStorageSession();
-    loadLevels();
 </script>
 </body>
 </html>
