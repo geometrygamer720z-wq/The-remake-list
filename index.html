@@ -24,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* Partículas de GD de fondo */
         .gd-particles {
             position: fixed;
             top: 0;
@@ -114,7 +113,7 @@
             gap: 15px;
         }
 
-        /* Pestañas de navegación (Demon List / Jugadores) */
+        /* Pestañas de navegación */
         .nav-tabs {
             display: flex;
             background: #111;
@@ -207,7 +206,6 @@
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
 
-        /* Panel de Alertas Exclusivo para el Admin */
         .admin-alert-box {
             background: rgba(255, 65, 108, 0.15);
             border: 1px solid #ff416c;
@@ -219,28 +217,15 @@
         .admin-alert-box h4 { margin: 0 0 8px 0; color: #ff416c; font-size: 1rem; }
         .admin-alert-box ul { margin: 0; padding-left: 20px; font-size: 0.9rem; color: #ff99a8; }
 
-        .fab-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 2rem;
+        /* Contenedor superior para botones de agregar (Nivel / Jugador) */
+        .admin-action-bar {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-            z-index: 999;
-            transition: transform 0.2s;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        .fab-btn:hover { transform: scale(1.1); }
 
-        .level-card, .player-card {
+        .level-card, .player-card, .person-card {
             display: flex;
             align-items: center;
             background-color: var(--card-bg);
@@ -249,18 +234,17 @@
             border-radius: 10px;
             border-left: 4px solid var(--accent);
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            cursor: pointer;
             transition: transform 0.2s;
         }
-        .level-card:hover, .player-card:hover { transform: scale(1.01); }
+        .level-card:hover, .player-card:hover, .person-card:hover { transform: scale(1.01); }
         .thumbnail { width: 110px; height: 62px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #000; flex-shrink: 0; }
-        .level-info, .player-info { flex-grow: 1; }
-        .level-title, .player-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
-        .level-creator, .player-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+        .level-info, .player-info, .person-info { flex-grow: 1; }
+        .level-title, .player-name, .person-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
+        .level-creator, .player-details, .person-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
         .level-points, .player-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
-        .level-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
+        .level-actions, .player-actions, .person-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
 
-        .player-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
+        .player-avatar, .person-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
         .player-rank { font-size: 1.2rem; font-weight: bold; color: var(--accent); width: 35px; text-align: center; margin-right: 10px; }
 
         .modal {
@@ -301,7 +285,6 @@
             border: 1px solid #333;
         }
 
-        /* Estilo para la miniatura interactiva de YouTube en el Modal de Detalles */
         .modal-yt-container {
             position: relative;
             width: 100%;
@@ -311,15 +294,8 @@
             border: 2px solid #333;
             transition: border-color 0.2s;
         }
-        .modal-yt-container:hover {
-            border-color: var(--accent);
-        }
-        .modal-yt-thumb {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            display: block;
-        }
+        .modal-yt-container:hover { border-color: var(--accent); }
+        .modal-yt-thumb { width: 100%; height: 200px; object-fit: cover; display: block; }
         .modal-yt-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -330,23 +306,16 @@
             justify-content: center;
             transition: background 0.2s;
         }
-        .modal-yt-container:hover .modal-yt-overlay {
-            background: rgba(0, 0, 0, 0.15);
-        }
+        .modal-yt-container:hover .modal-yt-overlay { background: rgba(0, 0, 0, 0.15); }
         .play-icon-circle {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             background: #ff0000;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
             transition: transform 0.2s;
         }
-        .modal-yt-container:hover .play-icon-circle {
-            transform: scale(1.1);
-        }
+        .modal-yt-container:hover .play-icon-circle { transform: scale(1.1); }
         .play-triangle {
             width: 0; height: 0;
             border-top: 12px solid transparent;
@@ -373,6 +342,7 @@
         <div class="nav-tabs">
             <button class="nav-tab-btn active" id="tabListBtn" onclick="switchTab('list')">List</button>
             <button class="nav-tab-btn" id="tabPlayersBtn" onclick="switchTab('players')">Players</button>
+            <button class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
 
         <button class="discord-btn" id="discordHeaderBtn" onclick="handleDiscordClick()" title="Discord">
@@ -399,6 +369,12 @@
         <ul id="adminAlertList"></ul>
     </div>
 
+    <!-- Barra de Acciones Exclusivas del Administrador -->
+    <div id="adminActionBar" class="admin-action-bar" style="display: none;">
+        <button class="btn" onclick="openAddLevelModal()">+ Añadir Nivel</button>
+        <button class="btn" onclick="openAddPlayerModal()" style="background: linear-gradient(135deg, #f7b733, #f39c12); color:#000;">+ Añadir Jugador Manual</button>
+    </div>
+
     <!-- Vista de la Demon List -->
     <div id="listViewContainer">
         <div id="demonList"></div>
@@ -408,9 +384,12 @@
     <div id="playersViewContainer" style="display: none;">
         <div id="playersList"></div>
     </div>
-</div>
 
-<button class="fab-btn" id="fabAddBtn" onclick="openAddLevelModal()" style="display: none;">+</button>
+    <!-- Vista de la Categoría de Personas (Cuentas Registradas) -->
+    <div id="personsViewContainer" style="display: none;">
+        <div id="personsList"></div>
+    </div>
+</div>
 
 <div id="discordModal" class="modal">
     <div class="modal-content">
@@ -424,6 +403,7 @@
     </div>
 </div>
 
+<!-- Modal Añadir Nivel -->
 <div id="addLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAddLevelModal()">&times;</span>
@@ -431,7 +411,7 @@
         <form id="levelForm" onsubmit="handleAddNewLevel(event)">
             <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
             <input type="text" id="lvlCreator" placeholder="Creador" required>
-            <input type="text" id="lvlVerifier" placeholder="Verificador (Debe coincidir con el usuario registrado)" required>
+            <input type="text" id="lvlVerifier" placeholder="Verificador" required>
             <input type="text" id="lvlId" placeholder="ID del nivel de Geometry Dash" required>
             <input type="number" id="lvlRank" placeholder="Puesto en el Top (Ej: 1)" required>
             <input type="url" id="lvlYoutube" placeholder="URL del video de YouTube" required>
@@ -454,6 +434,23 @@
     </div>
 </div>
 
+<!-- Modal Añadir / Editar Jugador Manual (Admin) -->
+<div id="playerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closePlayerModal()">&times;</span>
+        <h3 id="playerModalTitle" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Añadir Jugador</h3>
+        <form id="playerForm" onsubmit="handleSaveManualPlayer(event)">
+            <input type="hidden" id="playerEditKey">
+            <input type="text" id="manualPlayerName" placeholder="Nombre de usuario" required>
+            <input type="number" id="manualPlayerPoints" placeholder="Puntos iniciales" value="0" required>
+            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">Imagen de perfil:</label>
+            <input type="file" id="manualPlayerImgFile" accept="image/*" style="color: var(--text-muted); margin-bottom:15px;">
+            <button type="submit" class="btn" style="width:100%; padding: 12px;">Guardar Jugador</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Inicio de Sesión / Registro -->
 <div id="authModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAuthModal()">&times;</span>
@@ -475,6 +472,7 @@
     </div>
 </div>
 
+<!-- Modal Editar Perfil -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeProfileModal()">&times;</span>
@@ -495,6 +493,7 @@
     </div>
 </div>
 
+<!-- Modal Editar Nivel (Admin) -->
 <div id="editLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeEditModal()">&times;</span>
@@ -526,14 +525,13 @@
     </div>
 </div>
 
-<!-- Modal de Detalles Actualizado con Miniatura Interactiva de YouTube -->
+<!-- Modal de Detalles del Nivel -->
 <div id="levelDetailModal" class="modal">
     <div class="modal-content" style="text-align: center;">
         <span class="close-btn" onclick="closeDetailModal()">&times;</span>
         <h3 id="modalLevelTitle" style="color:var(--accent); margin-top:0;"></h3>
         <p id="modalLevelCreators" style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;"></p>
         
-        <!-- Miniatura de YouTube Interactiva -->
         <a id="modalYoutubeAnchor" href="#" target="_blank" style="text-decoration: none;">
             <div class="modal-yt-container">
                 <img id="modalYoutubeThumbImg" src="" class="modal-yt-thumb" alt="YouTube Thumbnail">
@@ -724,8 +722,11 @@
         currentActiveTab = tab;
         document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
         document.getElementById('tabPlayersBtn').classList.toggle('active', tab === 'players');
+        document.getElementById('tabPersonsBtn').classList.toggle('active', tab === 'persons');
+        
         document.getElementById('listViewContainer').style.display = tab === 'list' ? 'block' : 'none';
         document.getElementById('playersViewContainer').style.display = tab === 'players' ? 'block' : 'none';
+        document.getElementById('personsViewContainer').style.display = tab === 'persons' ? 'block' : 'none';
         loadDataAndRender();
     };
 
@@ -776,9 +777,7 @@
         }
     }
 
-    function updateLevelBadgeText() {
-        checkLevelAddedStatus();
-    }
+    function updateLevelBadgeText() { checkLevelAddedStatus(); }
 
     function recordLevelAddition() {
         let addedHistory = JSON.parse(localStorage.getItem('gd_levels_added_history') || '[]');
@@ -836,9 +835,7 @@
         }
     };
 
-    window.closeDiscordModal = () => {
-        document.getElementById('discordModal').style.display = 'none';
-    };
+    window.closeDiscordModal = () => { document.getElementById('discordModal').style.display = 'none'; };
 
     window.handleSaveDiscordUrl = (e) => {
         e.preventDefault();
@@ -860,7 +857,7 @@
         const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
         const adminAccount = localStorage.getItem('gd_admin_account');
         const authContainer = document.getElementById('authContainer');
-        const fabAddBtn = document.getElementById('fabAddBtn');
+        const adminActionBar = document.getElementById('adminActionBar');
 
         if (activeUser && allAccounts[activeUser]) {
             const profile = allAccounts[activeUser];
@@ -869,9 +866,9 @@
             const isThisAccountAdmin = (adminAccount === activeUser);
 
             if (isThisAccountAdmin) {
-                fabAddBtn.style.display = 'flex';
+                adminActionBar.style.display = 'flex';
             } else {
-                fabAddBtn.style.display = 'none';
+                adminActionBar.style.display = 'none';
             }
 
             authContainer.innerHTML = `
@@ -885,7 +882,7 @@
             `;
         } else {
             authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">${translations[currentLang].login}</button>`;
-            fabAddBtn.style.display = 'none';
+            adminActionBar.style.display = 'none';
         }
         loadDataAndRender();
     }
@@ -897,9 +894,7 @@
         document.getElementById('authModal').style.display = 'flex';
     };
 
-    window.closeAuthModal = () => {
-        document.getElementById('authModal').style.display = 'none';
-    };
+    window.closeAuthModal = () => { document.getElementById('authModal').style.display = 'none'; };
 
     document.getElementById('authForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -956,9 +951,7 @@
         }
     };
 
-    window.closeProfileModal = () => {
-        document.getElementById('profileModal').style.display = 'none';
-    };
+    window.closeProfileModal = () => { document.getElementById('profileModal').style.display = 'none'; };
 
     document.getElementById('profileForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -1033,6 +1026,118 @@
         location.reload();
     };
 
+    // Funciones para gestionar Jugadores Manuales
+    window.openAddPlayerModal = () => {
+        document.getElementById('playerForm').reset();
+        document.getElementById('playerEditKey').value = "";
+        document.getElementById('playerModalTitle').innerText = "Añadir Jugador Manual";
+        document.getElementById('playerModal').style.display = 'flex';
+    };
+
+    window.openEditPlayerModal = (id, name, points) => {
+        document.getElementById('playerForm').reset();
+        document.getElementById('playerEditKey').value = id;
+        document.getElementById('manualPlayerName').value = decodeURIComponent(name);
+        document.getElementById('manualPlayerPoints').value = points;
+        document.getElementById('playerModalTitle').innerText = "Editar Jugador Manual";
+        document.getElementById('playerModal').style.display = 'flex';
+    };
+
+    window.closePlayerModal = () => { document.getElementById('playerModal').style.display = 'none'; };
+
+    window.handleSaveManualPlayer = (e) => {
+        e.preventDefault();
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) {
+            alert("No tienes permisos de administrador.");
+            return;
+        }
+
+        const editKey = document.getElementById('playerEditKey').value;
+        const name = document.getElementById('manualPlayerName').value.trim();
+        const points = Number(document.getElementById('manualPlayerPoints').value);
+        const fileInput = document.getElementById('manualPlayerImgFile');
+
+        let manualPlayers = JSON.parse(localStorage.getItem('gd_manual_players') || '[]');
+
+        let existingImage = "";
+        if (editKey) {
+            let found = manualPlayers.find(p => p.id === editKey);
+            if (found) existingImage = found.imageBase64 || "";
+        }
+
+        const saveData = (imgBase64) => {
+            if (editKey) {
+                let index = manualPlayers.findIndex(p => p.id === editKey);
+                if (index !== -1) {
+                    manualPlayers[index] = { id: editKey, name, points, imageBase64: imgBase64 || existingImage };
+                }
+            } else {
+                const newPlayer = {
+                    id: 'man_player_' + Date.now(),
+                    name,
+                    points,
+                    imageBase64: imgBase64 || ''
+                };
+                manualPlayers.push(newPlayer);
+            }
+            localStorage.setItem('gd_manual_players', JSON.stringify(manualPlayers));
+            closePlayerModal();
+            loadDataAndRender();
+            alert("¡Jugador guardado con éxito!");
+        };
+
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (!file.type.startsWith('image/')) {
+                alert("Por favor selecciona un archivo de imagen válido.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                saveData(uploadEvent.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            saveData(existingImage);
+        }
+    };
+
+    window.deleteManualPlayer = (id) => {
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) return;
+
+        if (confirm("¿Estás seguro de que deseas eliminar este jugador de la tabla?")) {
+            let manualPlayers = JSON.parse(localStorage.getItem('gd_manual_players') || '[]');
+            manualPlayers = manualPlayers.filter(p => p.id !== id);
+            localStorage.setItem('gd_manual_players', JSON.stringify(manualPlayers));
+            loadDataAndRender();
+            alert("Jugador eliminado correctamente.");
+        }
+    };
+
+    // Funciones para eliminar Personas (Cuentas Registradas)
+    window.deleteRegisteredPerson = (username) => {
+        const activeUser = localStorage.getItem('gd_active_user');
+        const adminAccount = localStorage.getItem('gd_admin_account');
+        if (adminAccount !== activeUser) {
+            alert("No tienes permisos de administrador.");
+            return;
+        }
+
+        if (confirm(`⚠️ ADVERTENCIA: ¿Estás seguro de eliminar permanentemente la cuenta de "${username}"? Si vuelve a iniciar sesión, será una cuenta completamente nueva.`)) {
+            let allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+            if (allAccounts[username]) {
+                delete allAccounts[username];
+                localStorage.setItem('gd_accounts', JSON.stringify(allAccounts));
+                loadDataAndRender();
+                alert("Cuenta eliminada correctamente.");
+            }
+        }
+    };
+
     window.openAddLevelModal = () => {
         document.getElementById('levelForm').reset();
         document.getElementById('imageSourceType').value = 'youtube';
@@ -1040,9 +1145,7 @@
         document.getElementById('addLevelModal').style.display = 'flex';
     };
 
-    window.closeAddLevelModal = () => {
-        document.getElementById('addLevelModal').style.display = 'none';
-    };
+    window.closeAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'none'; };
 
     window.handleAddNewLevel = (event) => {
         event.preventDefault();
@@ -1109,9 +1212,7 @@
         document.getElementById('editLevelModal').style.display = 'flex';
     };
 
-    window.closeEditModal = () => {
-        document.getElementById('editLevelModal').style.display = 'none';
-    };
+    window.closeEditModal = () => { document.getElementById('editLevelModal').style.display = 'none'; };
 
     window.handleEditLevel = (event) => {
         event.preventDefault();
@@ -1141,9 +1242,7 @@
             logoBase64: levels[index].logoBase64 || ''
         };
 
-        if (imageSource === 'youtube') {
-            updatedLevel.logoBase64 = '';
-        }
+        if (imageSource === 'youtube') updatedLevel.logoBase64 = '';
 
         if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
             const file = fileInput.files[0];
@@ -1170,48 +1269,65 @@
         alert("¡Nivel actualizado con éxito!");
     }
 
-    // Función unificada que procesa niveles, valida cuentas y renderiza según la pestaña activa
+    // Procesamiento y Renderizado General (Lista, Jugadores y Personas)
     function loadDataAndRender() {
         const activeUser = localStorage.getItem('gd_active_user');
         const adminAccount = localStorage.getItem('gd_admin_account');
         const isAdmin = (adminAccount === activeUser);
         const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
+        const manualPlayers = JSON.parse(localStorage.getItem('gd_manual_players') || '[]');
 
         let levels = JSON.parse(localStorage.getItem('gd_custom_levels') || '[]');
         levels.sort((a, b) => a.rank - b.rank);
 
-        // Procesar puntajes y verificar cuentas registradas
         let playersMap = {};
         let missingAccountsAlerts = [];
 
+        // 1. Agregar jugadores añadidos manualmente
+        manualPlayers.forEach(mp => {
+            const key = mp.name.toLowerCase();
+            playersMap[key] = {
+                id: mp.id,
+                name: mp.name,
+                imageBase64: mp.imageBase64 || '',
+                points: Number(mp.points) || 0,
+                verifiedLevelsCount: 0,
+                isManual: true
+            };
+        });
+
+        // 2. Procesar niveles y sumar puntos a verificadores (cuentas o manuales)
         levels.forEach((lvl) => {
             const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
             const verifierName = lvl.verifier ? lvl.verifier.trim() : '';
+            const verifierKey = verifierName.toLowerCase();
 
-            // Buscar si el verificador existe en las cuentas registradas (ignorando mayúsculas/minúsculas)
-            const matchedKey = Object.keys(allAccounts).find(
-                acc => acc.toLowerCase() === verifierName.toLowerCase()
-            );
+            // Buscar si existe en manuales o en cuentas registradas
+            const matchedManualKey = Object.keys(playersMap).find(k => k === verifierKey);
+            const matchedAccountKey = Object.keys(allAccounts).find(acc => acc.toLowerCase() === verifierKey);
 
-            if (matchedKey) {
-                const registeredAcc = allAccounts[matchedKey];
-                if (!playersMap[matchedKey]) {
-                    playersMap[matchedKey] = {
+            if (matchedManualKey) {
+                playersMap[matchedManualKey].points += points;
+                playersMap[matchedManualKey].verifiedLevelsCount += 1;
+            } else if (matchedAccountKey) {
+                const registeredAcc = allAccounts[matchedAccountKey];
+                if (!playersMap[verifierKey]) {
+                    playersMap[verifierKey] = {
                         name: registeredAcc.name,
                         imageBase64: registeredAcc.imageBase64 || '',
                         points: 0,
-                        verifiedLevelsCount: 0
+                        verifiedLevelsCount: 0,
+                        isManual: false
                     };
                 }
-                playersMap[matchedKey].points += points;
-                playersMap[matchedKey].verifiedLevelsCount += 1;
+                playersMap[verifierKey].points += points;
+                playersMap[verifierKey].verifiedLevelsCount += 1;
             } else if (verifierName) {
-                // Alerta si el verificador no tiene cuenta registrada
-                missingAccountsAlerts.push(`El nivel "${lvl.name}" (Top #${lvl.rank}) tiene como verificador a "${verifierName}", el cual no está registrado.`);
+                missingAccountsAlerts.push(`El nivel "${lvl.name}" (Top #${lvl.rank}) tiene como verificador a "${verifierName}", el cual no está registrado ni añadido manualmente.`);
             }
         });
 
-        // Mostrar panel de alerta solo al administrador
+        // Alerta exclusiva para el Admin
         const adminAlertBox = document.getElementById('adminAlertBox');
         const adminAlertList = document.getElementById('adminAlertList');
         if (isAdmin && missingAccountsAlerts.length > 0) {
@@ -1221,7 +1337,7 @@
             adminAlertBox.style.display = 'none';
         }
 
-        // Renderizar la pestaña de la Demon List
+        // Renderizar pestaña: Demon List
         if (currentActiveTab === 'list') {
             const listContainer = document.getElementById('demonList');
             listContainer.innerHTML = "";
@@ -1267,7 +1383,7 @@
             });
         }
 
-        // Renderizar la pestaña de Jugadores (Leaderboard)
+        // Renderizar pestaña: Jugadores (Leaderboard)
         if (currentActiveTab === 'players') {
             const playersContainer = document.getElementById('playersList');
             playersContainer.innerHTML = "";
@@ -1275,13 +1391,23 @@
             let sortedPlayers = Object.values(playersMap).sort((a, b) => b.points - a.points);
 
             if (sortedPlayers.length === 0) {
-                playersContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay jugadores con niveles verificados registrados aún.</p>";
+                playersContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay jugadores registrados aún.</p>";
                 return;
             }
 
             sortedPlayers.forEach((player, index) => {
                 const rankNum = index + 1;
                 const avatarSrc = player.imageBase64 || 'https://via.placeholder.com/45';
+
+                let adminPlayerActions = '';
+                if (isAdmin && player.isManual) {
+                    adminPlayerActions = `
+                        <div class="player-actions">
+                            <button type="button" class="btn btn-edit" onclick="openEditPlayerModal('${player.id}', '${encodeURIComponent(player.name)}', ${player.points})">Editar</button>
+                            <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteManualPlayer('${player.id}')">Eliminar</button>
+                        </div>
+                    `;
+                }
 
                 const pCard = document.createElement('div');
                 pCard.className = 'player-card';
@@ -1293,8 +1419,47 @@
                         <p class="player-details">Niveles verificados: ${player.verifiedLevelsCount}</p>
                     </div>
                     <div class="player-points">${player.points} pts</div>
+                    ${adminPlayerActions}
                 `;
                 playersContainer.appendChild(pCard);
+            });
+        }
+
+        // Renderizar pestaña: Personas (Cuentas Registradas)
+        if (currentActiveTab === 'persons') {
+            const personsContainer = document.getElementById('personsList');
+            personsContainer.innerHTML = "";
+
+            let personsArray = Object.values(allAccounts);
+
+            if (personsArray.length === 0) {
+                personsContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay personas que hayan iniciado sesión todavía.</p>";
+                return;
+            }
+
+            personsArray.forEach((person) => {
+                const avatarSrc = person.imageBase64 || 'https://via.placeholder.com/45';
+
+                let adminPersonActions = '';
+                if (isAdmin) {
+                    adminPersonActions = `
+                        <div class="person-actions">
+                            <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteRegisteredPerson('${person.name}')">Eliminar Cuenta</button>
+                        </div>
+                    `;
+                }
+
+                const perCard = document.createElement('div');
+                perCard.className = 'person-card';
+                perCard.innerHTML = `
+                    <img src="${avatarSrc}" class="person-avatar" onerror="this.src='https://via.placeholder.com/45'">
+                    <div class="person-info">
+                        <h3 class="person-name">${person.name}</h3>
+                        <p class="person-details">Cuenta registrada en la plataforma</p>
+                    </div>
+                    ${adminPersonActions}
+                `;
+                personsContainer.appendChild(perCard);
             });
         }
     }
@@ -1303,24 +1468,17 @@
         document.getElementById('modalLevelTitle').innerText = name;
         document.getElementById('modalLevelCreators').innerText = `Por ${creator} • Verificado por ${verifier}`;
         document.getElementById('modalLevelIdText').innerText = `ID: ${levelId}`;
-        
-        // Configurar la miniatura interactiva de YouTube
         document.getElementById('modalYoutubeAnchor').href = youtubeUrl;
         document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
-
         window.selectedLevelIdForCopy = levelId;
         document.getElementById('levelDetailModal').style.display = 'flex';
     };
 
-    window.closeDetailModal = () => {
-        document.getElementById('levelDetailModal').style.display = 'none';
-    };
+    window.closeDetailModal = () => { document.getElementById('levelDetailModal').style.display = 'none'; };
 
     window.copyLevelId = () => {
         navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => {
             alert("¡ID copiado al portapapeles!");
-        }).catch(err => {
-            console.error("Error al copiar: ", err);
         });
     };
 
@@ -1333,7 +1491,6 @@
             let levels = JSON.parse(localStorage.getItem('gd_custom_levels') || '[]');
             levels = levels.filter(l => l.id !== id);
             localStorage.setItem('gd_custom_levels', JSON.stringify(levels));
-            
             removeLatestLevelAdditionRecord();
             loadDataAndRender();
             alert("Nivel eliminado correctamente.");
