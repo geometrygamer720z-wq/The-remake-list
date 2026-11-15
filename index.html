@@ -225,9 +225,7 @@
         <button class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
     </div>
 
-    <div id="adminTriggerContainer" style="text-align: right; margin-bottom: 15px; display: none;">
-        <button class="btn-copy" onclick="openAdminCodeModal()" style="font-size: 0.75rem; padding: 4px 10px; background: #111;">🔑 Admin Code</button>
-    </div>
+    <!-- El botón de código de administrador ha sido eliminado permanentemente de la interfaz -->
 
     <div id="listViewContainer"><div id="demonList"></div></div>
     <div id="playersViewContainer" style="display: none;"><div id="playersList"></div></div>
@@ -359,18 +357,6 @@
             <input type="number" id="editLvlRank" placeholder="Top Rank Position" required>
             <input type="url" id="editLvlYoutube" placeholder="YouTube Video URL" required>
             <button type="submit" class="btn" id="m-edit-submit" style="width:100%; margin-top:10px; padding: 12px;">Save Changes</button>
-        </form>
-    </div>
-</div>
-
-<div id="adminCodeModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeAdminCodeModal()">&times;</span>
-        <h3 id="m-adm-title" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Enter Administrator Code</h3>
-        <form onsubmit="verifyAdminCode(event)">
-            <label id="m-adm-label" style="color:var(--text-muted); font-size:0.9rem;">Enter secret key:</label>
-            <input type="password" id="adminCodeInput" placeholder="Secret code" required>
-            <button type="submit" class="btn" id="m-adm-submit" style="width:100%; padding: 12px; margin-top: 10px;">Verify Code</button>
         </form>
     </div>
 </div>
@@ -514,7 +500,6 @@
             tabPersons: "Persons",
             signIn: "Sign In",
             signOut: "Sign Out",
-            adminCode: "🔑 Admin Code",
             addLevel: "+ Add Level",
             noLevels: "No levels added yet.",
             noPlayers: "No verifying players yet.",
@@ -565,9 +550,6 @@
             mAddSubmit: "Add Level to List",
             mEditTitle: "Edit Level",
             mEditSubmit: "Save Changes",
-            mAdmTitle: "Enter Administrator Code",
-            mAdmLabel: "Enter secret key:",
-            mAdmSubmit: "Verify Code",
             mAuthTitle: "Sign In / Register",
             mAuthUser: "Your GD Username:",
             mAuthPass: "Password:",
@@ -591,7 +573,6 @@
             tabPersons: "Personas",
             signIn: "Iniciar sesión",
             signOut: "Cerrar sesión",
-            adminCode: "🔑 Código Admin",
             addLevel: "+ Añadir Nivel",
             noLevels: "No hay niveles añadidos todavía.",
             noPlayers: "No hay jugadores verificadores todavía.",
@@ -642,9 +623,6 @@
             mAddSubmit: "Añadir Nivel a la Lista",
             mEditTitle: "Editar Nivel",
             mEditSubmit: "Guardar Cambios",
-            mAdmTitle: "Ingresar Código de Administrador",
-            mAdmLabel: "Introduce la clave secreta:",
-            mAdmSubmit: "Verificar Código",
             mAuthTitle: "Iniciar Sesión / Registrarse",
             mAuthUser: "Tu Nombre de Usuario en GD:",
             mAuthPass: "Contraseña:",
@@ -740,10 +718,6 @@
         document.getElementById('editLvlRank').placeholder = t.lvlRankPH;
         document.getElementById('editLvlYoutube').placeholder = t.lvlYoutubePH;
         document.getElementById('m-edit-submit').innerText = t.mEditSubmit;
-
-        document.getElementById('m-adm-title').innerText = t.mAdmTitle;
-        document.getElementById('m-adm-label').innerText = t.mAdmLabel;
-        document.getElementById('m-adm-submit').innerText = t.mAdmSubmit;
 
         document.getElementById('m-auth-title').innerText = t.mAuthTitle;
         document.getElementById('m-auth-user').innerText = t.mAuthUser;
@@ -901,13 +875,9 @@
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         const authContainer = document.getElementById('authContainer');
         const adminActionBar = document.getElementById('adminActionBar');
-        const adminTriggerContainer = document.getElementById('adminTriggerContainer');
 
         if (adminActionBar) {
             adminActionBar.style.display = isAdmin ? 'flex' : 'none';
-        }
-        if (adminTriggerContainer) {
-            adminTriggerContainer.style.display = isAdmin ? 'none' : 'block';
         }
 
         const t = translations[currentLang];
@@ -985,23 +955,6 @@
 
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
     window.closeAuthModal = () => { document.getElementById('authModal').style.display = 'none'; };
-
-    window.openAdminCodeModal = () => { document.getElementById('adminCodeModal').style.display = 'flex'; };
-    window.closeAdminCodeModal = () => { document.getElementById('adminCodeModal').style.display = 'none'; };
-
-    window.verifyAdminCode = (e) => {
-        e.preventDefault();
-        const code = document.getElementById('adminCodeInput').value;
-        if (code === "6767XDXD") {
-            localStorage.setItem('gd_is_admin', 'true');
-            alert(currentLang === 'es' ? "¡Código correcto! Modo administrador activado de por vida en este dispositivo." : "Correct code! Admin mode activated permanently on this device.");
-            closeAdminCodeModal();
-            checkLocalStorageSession();
-            loadDataAndRender();
-        } else {
-            alert(currentLang === 'es' ? "Código incorrecto." : "Incorrect code.");
-        }
-    };
 
     window.handleAuthSubmit = async (e) => {
         e.preventDefault();
@@ -1088,7 +1041,6 @@
         }
     };
 
-    // Funciones para el flujo de eliminación de cuenta segura mediante contraseña
     window.openDeleteAccountPrompt = () => {
         document.getElementById('confirmAccountPass').value = "";
         document.getElementById('deleteAccountConfirmModal').style.display = 'flex';
@@ -1105,7 +1057,6 @@
 
         if (!activeUser || !dbData.accounts[activeUser]) return;
 
-        // Comprobamos si la contraseña coincide exactamente con la del usuario actual
         if (dbData.accounts[activeUser].pass === enteredPass) {
             delete dbData.accounts[activeUser];
             localStorage.removeItem('gd_active_user');
