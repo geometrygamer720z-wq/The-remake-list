@@ -64,14 +64,6 @@
         }
         .nav-tab-btn.active { background: var(--accent); color: #000; }
 
-        .discord-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            background-color: #5865F2; display: flex; align-items: center;
-            justify-content: center; cursor: pointer; border: none; padding: 0;
-        }
-        .discord-btn:hover { transform: scale(1.1); background-color: #4752c4; }
-        .discord-icon { width: 22px; height: 22px; fill: white; }
-
         .lang-group { display: flex; background: #111; border-radius: 6px; border: 1px solid #333; overflow: hidden; }
         .lang-btn { background: transparent; color: var(--text-muted); border: none; padding: 6px 12px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .lang-btn.active { background: var(--accent); color: #000; }
@@ -87,7 +79,7 @@
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
 
-        .admin-action-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .admin-action-bar { display: none; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
         .level-card, .player-card, .person-card {
             display: flex; align-items: center; background-color: var(--card-bg);
@@ -159,9 +151,8 @@
 </header>
 
 <div class="container">
-    <div id="adminActionBar" class="admin-action-bar" style="display: none;">
+    <div id="adminActionBar" class="admin-action-bar">
         <button class="btn" onclick="openAddLevelModal()">+ Añadir Nivel</button>
-        <button class="btn" onclick="openAdminCodeModal()" style="background: linear-gradient(135deg, #f7b733, #f39c12); color:#000;">🔑 Código Admin</button>
     </div>
 
     <div id="listViewContainer"><div id="demonList"></div></div>
@@ -192,18 +183,6 @@
                 </div>
             </div>
             <button type="submit" class="btn" style="width:100%; padding: 12px;">Añadir Nivel a la Lista</button>
-        </form>
-    </div>
-</div>
-
-<div id="adminCodeModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeAdminCodeModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Ingresar Código de Administrador</h3>
-        <form onsubmit="verifyAdminCode(event)">
-            <label style="color:var(--text-muted); font-size:0.9rem;">Introduce la clave secreta:</label>
-            <input type="password" id="adminCodeInput" placeholder="Código secreto" required>
-            <button type="submit" class="btn" style="width:100%; padding: 12px; margin-top: 10px;">Verificar Código</button>
         </form>
     </div>
 </div>
@@ -342,9 +321,11 @@
 
     function checkLocalStorageSession() {
         const activeUser = localStorage.getItem('gd_active_user');
-        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         const authContainer = document.getElementById('authContainer');
         const adminActionBar = document.getElementById('adminActionBar');
+
+        // Es admin automáticamente si el usuario activo es exactamente 'samurandomer'
+        const isAdmin = (activeUser === 'samurandomer');
 
         if (adminActionBar) {
             adminActionBar.style.display = isAdmin ? 'flex' : 'none';
@@ -371,23 +352,6 @@
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
     window.closeAuthModal = () => { document.getElementById('authModal').style.display = 'none'; };
 
-    window.openAdminCodeModal = () => { document.getElementById('adminCodeModal').style.display = 'flex'; };
-    window.closeAdminCodeModal = () => { document.getElementById('adminCodeModal').style.display = 'none'; };
-
-    window.verifyAdminCode = (e) => {
-        e.preventDefault();
-        const code = document.getElementById('adminCodeInput').value;
-        if (code === "6767XDXD") {
-            localStorage.setItem('gd_is_admin', 'true');
-            alert("¡Código correcto! Modo administrador activado.");
-            closeAdminCodeModal();
-            checkLocalStorageSession();
-            loadDataAndRender();
-        } else {
-            alert("Código incorrecto.");
-        }
-    };
-
     window.handleAuthSubmit = async (e) => {
         e.preventDefault();
         const name = document.getElementById('authName').value.trim();
@@ -400,6 +364,10 @@
             if (dbData.accounts[name]) {
                 if (dbData.accounts[name].pass === pass) {
                     localStorage.setItem('gd_active_user', name);
+                    if (!imgBase64 && dbData.accounts[name].imageBase64) {
+                        imgBase64 = dbData.accounts[name].imageBase64;
+                    }
+                    dbData.accounts[name].imageBase64 = imgBase64 || dbData.accounts[name].imageBase64 || '';
                 } else {
                     alert("Contraseña incorrecta.");
                     return;
@@ -425,16 +393,72 @@
 
     window.logoutProfile = () => {
         localStorage.removeItem('gd_active_user');
-        localStorage.removeItem('gd_is_admin'); // Se desactiva el admin al cerrar sesión
         checkLocalStorageSession();
         loadDataAndRender();
     };
 
-    window.openProfileModal = () => { document.getElementById('profileModal').style.display = 'flex'; };
+    window.openProfileModal = () => {
+        const activeUser = localStorage.getItem('gd_active_user');
+        if (activeUser && dbData.accounts[activeUser]) {
+            document.getElementById('profileName').value = dbData.accounts[activeUser].name;
+            document.getElementById('profilePass').value = "";
+        }
+        document.getElementById('profileModal').style.display = 'flex';
+    };
     window.closeProfileModal = () => { document.getElementById('profileModal').style.display = 'none'; };
+
+    window.handleProfileUpdate = async (e) => {
+        e.preventDefault();
+        const activeUser = localStorage.getItem('gd_active_user');
+        if (!activeUser || !dbData.accounts[activeUser]) return;
+
+        const newPass = document.getElementById('profilePass').value;
+        const fileInput = document.getElementById('profileImgFile');
+
+        if (newPass) {
+            dbData.accounts[activeUser].pass = newPass;
+        }
+
+        const updateDataWithImg = async (imgBase64) => {
+            if (imgBase64) {
+                dbData.accounts[activeUser].imageBase64 = imgBase64;
+            }
+            await saveCloudData();
+            closeProfileModal();
+            checkLocalStorageSession();
+            loadDataAndRender();
+            alert("¡Perfil actualizado con éxito!");
+        };
+
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = async function(ev) { await updateDataWithImg(ev.target.result); };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            await updateDataWithImg(dbData.accounts[activeUser].imageBase64);
+        }
+    };
+
+    window.deleteAccount = async () => {
+        const activeUser = localStorage.getItem('gd_active_user');
+        if (!activeUser) return;
+        if (confirm("¿Estás seguro de eliminar tu cuenta?")) {
+            delete dbData.accounts[activeUser];
+            localStorage.removeItem('gd_active_user');
+            await saveCloudData();
+            closeProfileModal();
+            checkLocalStorageSession();
+            loadDataAndRender();
+        }
+    };
 
     window.openAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'flex'; };
     window.closeAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'none'; };
+
+    window.toggleImageSourceInputs = () => {
+        const val = document.getElementById('imageSourceType').value;
+        document.getElementById('customImageContainer').style.display = (val === 'custom') ? 'block' : 'none';
+    };
 
     window.handleAddNewLevel = async (e) => {
         e.preventDefault();
@@ -485,7 +509,8 @@
     };
 
     function loadDataAndRender() {
-        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        const activeUser = localStorage.getItem('gd_active_user');
+        const isAdmin = (activeUser === 'samurandomer');
         let levels = dbData.levels || [];
         levels.sort((a, b) => a.rank - b.rank);
 
