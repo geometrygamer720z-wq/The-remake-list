@@ -784,8 +784,8 @@
         }
     }
 
-    // Webhook de Discord con texto en INGLÉS
-    async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, addedByUsername) {
+    // Webhook de Discord optimizado (Solo Nombre, Creador, Verificador, ID y Foto)
+    async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, verifierText) {
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1571591905416839220/zOa0_eBCVqTjXDIcW1CZKjjRyan_CyWWZrzv9xQmIB83zaqDkcuoam78jnx6h56cULdr";
         
         let imageUrl = "";
@@ -807,7 +807,7 @@
             embeds: [
                 {
                     title: `#${rank} - ${levelName}`,
-                    description: `👤 **Creator:** ${creatorName}\n🆔 **GD ID:** \`${levelId}\`\n🛡️ **Added by (Admin):** ${addedByUsername || 'Administrator'}`,
+                    description: `👤 **Creator:** ${creatorName}\n🛡️ **Verifier:** ${verifierText}\n🆔 **GD ID:** \`${levelId}\``,
                     color: 52428,
                     image: {
                         url: imageUrl
@@ -1168,6 +1168,11 @@
         const imageSource = document.getElementById('imageSourceType').value;
         const fileInput = document.getElementById('lvlLogoFile');
 
+        let verifierText = verifier1;
+        if (is2p && verificationMode === 'duo' && verifier2) {
+            verifierText = `${verifier1} & ${verifier2}`;
+        }
+
         const newLevel = {
             id: 'lvl_' + Date.now(),
             name,
@@ -1190,9 +1195,8 @@
             dbData.levels.push(newLevel);
             await saveCloudData();
 
-            // Notificación en inglés hacia Discord
-            const activeAdminUser = localStorage.getItem('gd_active_user') || 'Admin';
-            await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, activeAdminUser);
+            // Notificación limpia hacia Discord (sin incluir quién lo añadió)
+            await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, verifierText);
 
             closeAddLevelModal();
             loadDataAndRender();
