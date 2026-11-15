@@ -121,7 +121,7 @@
         }
 
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); }
-        input, select { width: 100%; padding: 12px; margin: 8px 0 15px 0; border-radius: 8px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; font-size: 0.95rem; }
+        input, select, datalist { width: 100%; padding: 12px; margin: 8px 0 15px 0; border-radius: 8px; border: 1px solid #333; background: #0a0a0a; color: white; box-sizing: border-box; font-size: 0.95rem; }
         input:focus, select:focus { border-color: var(--accent); outline: none; }
         
         .profile-preview { display: flex; align-items: center; gap: 12px; background: #1c1c1c; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #2a2a2a; }
@@ -136,6 +136,12 @@
         }
         .play-icon-circle { width: 60px; height: 60px; background: #ff0000; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .play-triangle { width: 0; height: 0; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 20px solid #fff; margin-left: 4px; }
+        
+        .victors-section { background: #1a1a1a; padding: 12px; border-radius: 8px; margin-top: 15px; text-align: left; border: 1px solid #333; }
+        .victors-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .victors-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 100px; overflow-y: auto; }
+        .victor-badge { background: #222; border: 1px solid #444; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+        .victor-del { color: #ff416c; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -192,6 +198,8 @@
     <div id="personsViewContainer" style="display: none;"><div id="personsList"></div></div>
 </div>
 
+<datalist id="accountsDatalist"></datalist>
+
 <div id="discordModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeDiscordModal()">&times;</span>
@@ -240,12 +248,12 @@
 
             <div style="margin-top:10px;">
                 <label id="verifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verifier:</label>
-                <input type="text" id="lvlVerifier" placeholder="Verifier Name" required>
+                <input type="text" id="lvlVerifier" list="accountsDatalist" placeholder="Verifier Name" required autocomplete="off">
             </div>
 
             <div id="verifier2Container" style="display:none; margin-top:10px;">
                 <label id="verifier2Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Second Verifier:</label>
-                <input type="text" id="lvlVerifier2" placeholder="Second Verifier Name">
+                <input type="text" id="lvlVerifier2" list="accountsDatalist" placeholder="Second Verifier Name" autocomplete="off">
             </div>
 
             <input type="text" id="lvlId" placeholder="Geometry Dash Level ID" required>
@@ -292,12 +300,12 @@
 
             <div style="margin-top:10px;">
                 <label id="editVerifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verifier:</label>
-                <input type="text" id="editLvlVerifier" placeholder="Verifier Name" required>
+                <input type="text" id="editLvlVerifier" list="accountsDatalist" placeholder="Verifier Name" required autocomplete="off">
             </div>
 
             <div id="editVerifier2Container" style="display:none; margin-top:10px;">
                 <label id="editVerifier2Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Second Verifier:</label>
-                <input type="text" id="editLvlVerifier2" placeholder="Second Verifier Name">
+                <input type="text" id="editLvlVerifier2" list="accountsDatalist" placeholder="Second Verifier Name" autocomplete="off">
             </div>
 
             <input type="text" id="editLvlCodeId" placeholder="Level ID" required>
@@ -371,6 +379,26 @@
             <span style="font-weight: bold;" id="modalLevelIdText">ID: </span>
             <button class="btn-copy" id="m-copy-btn" onclick="copyLevelId()">Copy ID</button>
         </div>
+
+        <div class="victors-section">
+            <div class="victors-header">
+                <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);" id="m-victors-title">Victors</span>
+                <button class="btn" id="addVictorBtn" onclick="openAddVictorPrompt()" style="display:none; font-size:0.75rem; padding:4px 10px;">+ Add Victor</button>
+            </div>
+            <div id="modalVictorsList" class="victors-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para añadir Victor -->
+<div id="addVictorModal" class="modal" style="z-index: 1050;">
+    <div class="modal-content" style="max-width: 350px;">
+        <span class="close-btn" onclick="closeAddVictorModal()">&times;</span>
+        <h3 id="m-add-vic-title" style="margin-top:0; color:var(--accent); font-size: 1.2rem;">Add Victor</h3>
+        <form onsubmit="handleSaveVictor(event)">
+            <input type="text" id="victorNameInput" list="accountsDatalist" placeholder="Select or type player" required autocomplete="off">
+            <button type="submit" class="btn" id="m-add-vic-submit" style="width:100%; padding: 10px; margin-top: 10px;">Add Victor</button>
+        </form>
     </div>
 </div>
 
@@ -388,6 +416,7 @@
 
     let currentActiveTab = 'list';
     let currentLang = localStorage.getItem('gd_lang') || 'en';
+    let currentSelectedLevelId = null;
 
     const translations = {
         en: {
@@ -411,6 +440,9 @@
             delAccountConfirm: "Are you sure you want to delete your account?",
             edit: "Edit",
             delete: "Delete",
+            victorsTitle: "Victors",
+            addVictorBtn: "+ Add Victor",
+            mAddVicTitle: "Add Victor to Level",
             mDiscTitle: "Configure Discord Invite",
             mDiscLabel: "Discord Server URL:",
             mDiscSave: "Save & Upload to Cloud",
@@ -474,6 +506,9 @@
             delAccountConfirm: "¿Estás seguro de eliminar tu cuenta?",
             edit: "Editar",
             delete: "Eliminar",
+            victorsTitle: "Víctors",
+            addVictorBtn: "+ Añadir Victor",
+            mAddVicTitle: "Añadir Victor al Nivel",
             mDiscTitle: "Configurar Enlace de Discord",
             mDiscLabel: "URL del servidor de Discord:",
             mDiscSave: "Guardar y Subir a la Nube",
@@ -609,6 +644,10 @@
 
         document.getElementById('m-modal-yt-text').innerText = t.watchYt;
         document.getElementById('m-copy-btn').innerText = t.copyId;
+        document.getElementById('m-victors-title').innerText = t.victorsTitle;
+        document.getElementById('addVictorBtn').innerText = t.addVictorBtn;
+        document.getElementById('m-add-vic-title').innerText = t.mAddVicTitle;
+        document.getElementById('m-add-vic-submit').innerText = t.addVictorBtn;
     }
 
     async function fetchCloudData() {
@@ -626,8 +665,9 @@
             console.error("Error al conectar con JSONBin:", err);
         }
         checkLocalStorageSession();
+        updateAccountsDatalist();
         applyTranslations();
-        loadDataAndRender(); // <--- SOLUCIÓN: Forzar renderizado de niveles al terminar de cargar los datos de la nube
+        loadDataAndRender();
     }
 
     async function saveCloudData() {
@@ -644,6 +684,18 @@
         } catch (err) {
             console.error("Error al guardar en JSONBin:", err);
             alert("Error al sincronizar con la nube. Revisa tu conexión.");
+        }
+    }
+
+    function updateAccountsDatalist() {
+        const datalist = document.getElementById('accountsDatalist');
+        datalist.innerHTML = "";
+        if (dbData.accounts) {
+            Object.keys(dbData.accounts).forEach(username => {
+                const option = document.createElement('option');
+                option.value = username;
+                datalist.appendChild(option);
+            });
         }
     }
 
@@ -804,6 +856,7 @@
                 localStorage.setItem('gd_active_user', name);
             }
             await saveCloudData();
+            updateAccountsDatalist();
             closeAuthModal();
             checkLocalStorageSession();
             loadDataAndRender();
@@ -849,6 +902,7 @@
                 dbData.accounts[activeUser].imageBase64 = imgBase64;
             }
             await saveCloudData();
+            updateAccountsDatalist();
             closeProfileModal();
             checkLocalStorageSession();
             loadDataAndRender();
@@ -871,6 +925,7 @@
             delete dbData.accounts[activeUser];
             localStorage.removeItem('gd_active_user');
             await saveCloudData();
+            updateAccountsDatalist();
             closeProfileModal();
             checkLocalStorageSession();
             loadDataAndRender();
@@ -960,15 +1015,6 @@
         const imageSource = document.getElementById('imageSourceType').value;
         const fileInput = document.getElementById('lvlLogoFile');
 
-        if (!dbData.accounts || !dbData.accounts[verifier1]) {
-            alert(currentLang === 'es' ? `⚠️ Aviso: El verificador "${verifier1}" no ha iniciado sesión o no tiene cuenta registrada.` : `⚠️ Notice: Verifier "${verifier1}" has not signed in or doesn't have a registered account.`);
-        }
-        if (verificationMode === 'duo' && verifier2) {
-            if (!dbData.accounts || !dbData.accounts[verifier2]) {
-                alert(currentLang === 'es' ? `⚠️ Aviso: El segundo verificador "${verifier2}" no ha iniciado sesión o no tiene cuenta registrada.` : `⚠️ Notice: Second verifier "${verifier2}" has not signed in or doesn't have a registered account.`);
-            }
-        }
-
         const newLevel = {
             id: 'lvl_' + Date.now(),
             name,
@@ -981,7 +1027,8 @@
             rank,
             youtubeUrl,
             imageSource,
-            logoBase64: ''
+            logoBase64: '',
+            victors: []
         };
 
         const saveIt = async (logo) => {
@@ -1073,6 +1120,7 @@
         if (confirm(currentLang === 'es' ? `¿Eliminar la cuenta de ${username}?` : `Delete account for ${username}?`)) {
             delete dbData.accounts[username];
             await saveCloudData();
+            updateAccountsDatalist();
             loadDataAndRender();
         }
     };
@@ -1129,6 +1177,11 @@
                 }
                 if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
                     playerPointsMap[lvl.verifier2] = (playerPointsMap[lvl.verifier2] || 0) + pts;
+                }
+                if (lvl.victors && Array.isArray(lvl.victors)) {
+                    lvl.victors.forEach(victor => {
+                        playerPointsMap[victor] = (playerPointsMap[victor] || 0) + Math.round(pts * 0.5); // Victor points bonus
+                    });
                 }
             });
 
@@ -1187,6 +1240,7 @@
     }
 
     window.openDetailModal = (lvl, thumbUrl) => {
+        currentSelectedLevelId = lvl.id;
         document.getElementById('modalLevelTitle').innerText = lvl.name;
         let verifierText = lvl.verifier;
         if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
@@ -1197,7 +1251,69 @@
         document.getElementById('modalYoutubeAnchor').href = lvl.youtubeUrl;
         document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
         window.selectedLevelIdForCopy = lvl.levelId;
+
+        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        document.getElementById('addVictorBtn').style.display = isAdmin ? 'inline-block' : 'none';
+
+        renderModalVictors(lvl);
         document.getElementById('levelDetailModal').style.display = 'flex';
+    };
+
+    function renderModalVictors(lvl) {
+        const victorsListContainer = document.getElementById('modalVictorsList');
+        victorsListContainer.innerHTML = "";
+        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+
+        if (!lvl.victors || lvl.victors.length === 0) {
+            victorsListContainer.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">${currentLang === 'es' ? 'No hay víctors aún.' : 'No victors yet.'}</span>`;
+            return;
+        }
+
+        lvl.victors.forEach(victorName => {
+            const badge = document.createElement('div');
+            badge.className = 'visitor-badge';
+            badge.style.cssText = "background: #222; border: 1px solid #444; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;";
+            badge.innerHTML = `
+                <span>${victorName}</span>
+                ${isAdmin ? `<span class="victor-del" onclick="removeVictor('${lvl.id}', '${victorName}')" title="Delete">×</span>` : ''}
+            `;
+            victorsListContainer.appendChild(badge);
+        });
+    }
+
+    window.openAddVictorPrompt = () => {
+        document.getElementById('victorNameInput').value = "";
+        document.getElementById('addVictorModal').style.display = 'flex';
+    };
+
+    window.closeAddVictorModal = () => { document.getElementById('addVictorModal').style.display = 'none'; };
+
+    window.handleSaveVictor = async (e) => {
+        e.preventDefault();
+        const victorName = document.getElementById('victorNameInput').value.trim();
+        if (!victorName || !currentSelectedLevelId) return;
+
+        let lvl = dbData.levels.find(l => l.id === currentSelectedLevelId);
+        if (lvl) {
+            if (!lvl.victors) lvl.victors = [];
+            if (!lvl.victors.includes(victorName)) {
+                lvl.victors.push(victorName);
+                await saveCloudData();
+                renderModalVictors(lvl);
+                loadDataAndRender();
+            }
+        }
+        closeAddVictorModal();
+    };
+
+    window.removeVictor = async (levelId, victorName) => {
+        let lvl = dbData.levels.find(l => l.id === levelId);
+        if (lvl && lvl.victors) {
+            lvl.victors = lvl.victors.filter(v => v !== victorName);
+            await saveCloudData();
+            renderModalVictors(lvl);
+            loadDataAndRender();
+        }
     };
 
     window.closeDetailModal = () => { document.getElementById('levelDetailModal').style.display = 'none'; };
