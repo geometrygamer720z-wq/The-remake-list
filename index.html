@@ -98,7 +98,6 @@
 
         .admin-action-bar { display: none; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
-        /* Estilo Grande para las tarjetas de niveles con fondo difuminado */
         .level-card {
             position: relative;
             display: flex; align-items: center;
@@ -192,8 +191,7 @@
             <button class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
 
-        <!-- Botón de Envío Superior Derecho con el ícono subido -->
-        <button class="social-btn submit-bg" id="submitInfoBtn" onclick="openSubmitInfoModal()" title="Submit Info / Info de Envíos">
+        <button class="social-btn submit-bg" id="submitInfoBtn" onclick="openSubmitInfoModal()" title="Submit Info">
             <svg class="social-icon" viewBox="0 0 24 24">
                 <path d="M12 2L5 9h4v8h6V9h4L12 2zm-7 19v-2h14v2H5z" fill="currentColor"/>
             </svg>
@@ -238,7 +236,6 @@
 
 <datalist id="accountsDatalist"></datalist>
 
-<!-- Modal de Información de Envíos (Discord) -->
 <div id="submitInfoModal" class="modal">
     <div class="modal-content" style="text-align: center;">
         <span class="close-btn" onclick="closeSubmitInfoModal()">&times;</span>
@@ -415,7 +412,6 @@
     </div>
 </div>
 
-<!-- Modal de Detalle de Usuario (Players / Persons) -->
 <div id="userDetailModal" class="modal">
     <div class="modal-content" style="text-align: center;">
         <span class="close-btn" onclick="closeUserDetailModal()">&times;</span>
@@ -788,6 +784,52 @@
         }
     }
 
+    // Función para enviar la alerta automática al Webhook de Discord
+    async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, addedByUsername) {
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1571591905416839220/zOa0_eBCVqTjXDIcW1CZKjjRyan_CyWWZrzv9xQmIB83zaqDkcuoam78jnx6h56cULdr";
+        
+        let imageUrl = "";
+        if (imageSource === 'custom' && logoBase64) {
+            imageUrl = logoBase64;
+        } else {
+            let ytId = "";
+            if (youtubeUrl) {
+                let match = youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                ytId = match ? match[1] : "";
+            }
+            if (ytId) {
+                imageUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+            }
+        }
+
+        const payload = {
+            content: `🚨 **¡NUEVO NIVEL AÑADIDO A LA REMAKE LIST!** 🚨`,
+            embeds: [
+                {
+                    title: `#${rank} - ${levelName}`,
+                    description: `👤 **Creador:** ${creatorName}\n🆔 **ID de GD:** \`${levelId}\`\n🛡️ **Añadido por (Admin):** ${addedByUsername || 'Administrador'}`,
+                    color: 52428,
+                    image: {
+                        url: imageUrl
+                    },
+                    footer: {
+                        text: "The Remake List - Geometry Dash"
+                    }
+                }
+            ]
+        };
+
+        try {
+            await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (err) {
+            console.error("Error al enviar el webhook a Discord:", err);
+        }
+    }
+
     function updateAccountsDatalist() {
         const datalist = document.getElementById('accountsDatalist');
         datalist.innerHTML = "";
@@ -1147,9 +1189,14 @@
             if (!dbData.levels) dbData.levels = [];
             dbData.levels.push(newLevel);
             await saveCloudData();
+
+            // Llamada automática al Webhook de Discord
+            const activeAdminUser = localStorage.getItem('gd_active_user') || 'Admin';
+            await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, activeAdminUser);
+
             closeAddLevelModal();
             loadDataAndRender();
-            alert(currentLang === 'es' ? "¡Nivel añadido y sincronizado con los jugadores en la nube!" : "Level added and synchronized with players in the cloud!");
+            alert(currentLang === 'es' ? "¡Nivel añadido y notificado en Discord!" : "Level added and notified in Discord!");
         };
 
         if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
