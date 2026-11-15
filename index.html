@@ -64,6 +64,15 @@
         }
         .nav-tab-btn.active { background: var(--accent); color: #000; }
 
+        .discord-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background-color: #5865F2; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; border: none; padding: 0;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .discord-btn:hover { transform: scale(1.1); background-color: #4752c4; }
+        .discord-icon { width: 22px; height: 22px; fill: white; }
+
         .lang-group { display: flex; background: #111; border-radius: 6px; border: 1px solid #333; overflow: hidden; }
         .lang-btn { background: transparent; color: var(--text-muted); border: none; padding: 6px 12px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .lang-btn.active { background: var(--accent); color: #000; }
@@ -90,10 +99,11 @@
         .level-info, .player-info, .person-info { flex-grow: 1; }
         .level-title, .player-name, .person-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
         .level-creator, .player-details, .person-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
-        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
+        .level-points, .player-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
         .level-actions, .person-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
 
-        .person-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
+        .player-avatar, .person-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
+        .player-rank { font-size: 1.2rem; font-weight: bold; color: var(--accent); width: 35px; text-align: center; margin-right: 10px; }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -139,6 +149,13 @@
             <button class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
 
+        <!-- Botón de Discord en la barra -->
+        <button class="discord-btn" id="discordHeaderBtn" onclick="handleDiscordClick()" title="Discord">
+            <svg class="discord-icon" viewBox="0 0 24 24">
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+            </svg>
+        </button>
+
         <div class="lang-group">
             <button class="lang-btn active" onclick="setLanguage('es', this)">ES</button>
             <button class="lang-btn" onclick="setLanguage('en', this)">US</button>
@@ -155,7 +172,6 @@
         <button class="btn" onclick="openAddLevelModal()">+ Añadir Nivel</button>
     </div>
 
-    <!-- Botón discreto para reclamar el admin con clave (desaparece de por vida al usarse) -->
     <div id="adminTriggerContainer" style="text-align: right; margin-bottom: 15px; display: none;">
         <button class="btn-copy" onclick="openAdminCodeModal()" style="font-size: 0.75rem; padding: 4px 10px; background: #111;">🔑 Código Admin</button>
     </div>
@@ -163,6 +179,19 @@
     <div id="listViewContainer"><div id="demonList"></div></div>
     <div id="playersViewContainer" style="display: none;"><div id="playersList"></div></div>
     <div id="personsViewContainer" style="display: none;"><div id="personsList"></div></div>
+</div>
+
+<!-- Modal para configurar Discord si eres admin -->
+<div id="discordModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeDiscordModal()">&times;</span>
+        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Configurar Enlace de Discord</h3>
+        <form id="discordForm" onsubmit="handleSaveDiscordUrl(event)">
+            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">URL del servidor de Discord:</label>
+            <input type="url" id="discordUrlInput" placeholder="https://discord.gg/tu-invitacion" required>
+            <button type="submit" class="btn" style="width:100%; padding: 12px; margin-top: 10px;">Guardar y Subir a la Nube</button>
+        </form>
+    </div>
 </div>
 
 <div id="addLevelModal" class="modal">
@@ -213,7 +242,7 @@
             <input type="text" id="authName" required placeholder="Introducir">
             <label>Contraseña:</label>
             <input type="password" id="authPass" required placeholder="••••••••">
-            <label>Sube tu imagen de perfil (Obligatorio para evitar errores):</label>
+            <label>Sube tu imagen de perfil:</label>
             <input type="file" id="authImgFile" accept="image/*" required style="color: var(--text-muted); margin-bottom: 15px;">
             <button type="submit" class="btn" style="width:100%; padding: 12px;">Continuar</button>
         </form>
@@ -265,7 +294,6 @@
 
     let dbData = {
         levels: [],
-        manualPlayers: [],
         discordUrl: "",
         accounts: {}
     };
@@ -346,8 +374,6 @@
         if (adminActionBar) {
             adminActionBar.style.display = isAdmin ? 'flex' : 'none';
         }
-        
-        // Si ya se reclamó el admin antes, el botón se oculta de por vida. Si no, se muestra discreto.
         if (adminTriggerContainer) {
             adminTriggerContainer.style.display = isAdmin ? 'none' : 'block';
         }
@@ -370,6 +396,34 @@
         }
     }
 
+    // Manejo del botón de Discord según sea Admin o Usuario normal
+    window.handleDiscordClick = () => {
+        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        if (isAdmin) {
+            // Si es admin, abre el modal para editar/configurar el link
+            document.getElementById('discordUrlInput').value = dbData.discordUrl || '';
+            document.getElementById('discordModal').style.display = 'flex';
+        } else {
+            // Si no es admin, lo manda directo al link guardado en la nube
+            if (dbData.discordUrl) {
+                window.open(dbData.discordUrl, '_blank');
+            } else {
+                alert("El enlace de Discord aún no ha sido configurado por el administrador.");
+            }
+        }
+    };
+
+    window.closeDiscordModal = () => { document.getElementById('discordModal').style.display = 'none'; };
+
+    window.handleSaveDiscordUrl = async (e) => {
+        e.preventDefault();
+        const url = document.getElementById('discordUrlInput').value.trim();
+        dbData.discordUrl = url;
+        await saveCloudData();
+        closeDiscordModal();
+        alert("¡Enlace de Discord actualizado y guardado en la nube para todos!");
+    };
+
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
     window.closeAuthModal = () => { document.getElementById('authModal').style.display = 'none'; };
 
@@ -380,7 +434,6 @@
         e.preventDefault();
         const code = document.getElementById('adminCodeInput').value;
         if (code === "6767XDXD") {
-            // Se guarda para siempre de por vida en el navegador del usuario que lo reclama
             localStorage.setItem('gd_is_admin', 'true');
             alert("¡Código correcto! Modo administrador activado de por vida en este dispositivo.");
             closeAdminCodeModal();
@@ -507,6 +560,10 @@
         const imageSource = document.getElementById('imageSourceType').value;
         const fileInput = document.getElementById('lvlLogoFile');
 
+        if (!dbData.accounts || !dbData.accounts[verifier]) {
+            alert(`⚠️ Aviso: El verificador "${verifier}" no ha iniciado sesión o no tiene cuenta registrada en la plataforma.`);
+        }
+
         const newLevel = { id: 'lvl_' + Date.now(), name, creator, verifier, levelId, rank, youtubeUrl, imageSource, logoBase64: '' };
 
         const saveIt = async (logo) => {
@@ -516,7 +573,7 @@
             await saveCloudData();
             closeAddLevelModal();
             loadDataAndRender();
-            alert("¡Nivel añadido y sincronizado para todos en la nube!");
+            alert("¡Nivel añadido y sincronizado con los jugadores en la nube!");
         };
 
         if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
@@ -570,6 +627,46 @@
                     </div>
                     <div class="level-points">${points} pts</div>
                     ${isAdmin ? `<div class="level-actions"><button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">Eliminar</button></div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        if (currentActiveTab === 'players') {
+            const container = document.getElementById('playersList');
+            container.innerHTML = "";
+
+            let playerPointsMap = {};
+            levels.forEach(lvl => {
+                if (lvl.verifier) {
+                    const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
+                    playerPointsMap[lvl.verifier] = (playerPointsMap[lvl.verifier] || 0) + pts;
+                }
+            });
+
+            let playersArr = Object.keys(playerPointsMap).map(name => {
+                let img = (dbData.accounts && dbData.accounts[name]) ? dbData.accounts[name].imageBase64 : '';
+                return { name, points: playerPointsMap[name], imageBase64: img };
+            });
+
+            playersArr.sort((a, b) => b.points - a.points);
+
+            if (playersArr.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay jugadores verificadores todavía.</p>";
+                return;
+            }
+
+            playersArr.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <div class="player-rank">#${index + 1}</div>
+                    <img src="${player.imageBase64 || 'https://via.placeholder.com/45'}" class="player-avatar" onerror="this.src='https://via.placeholder.com/45'">
+                    <div class="player-info">
+                        <h3 class="player-name">${player.name}</h3>
+                        <p class="player-details">Verificador en la Remake List</p>
+                    </div>
+                    <div class="player-points">${player.points} pts</div>
                 `;
                 container.appendChild(card);
             });
