@@ -784,7 +784,7 @@
         }
     }
 
-    // Webhook de Discord optimizado (Solo Nombre, Creador, Verificador, ID y Foto)
+    // Webhook de Discord optimizado
     async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, verifierText) {
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1571591905416839220/zOa0_eBCVqTjXDIcW1CZKjjRyan_CyWWZrzv9xQmIB83zaqDkcuoam78jnx6h56cULdr";
         
@@ -1006,10 +1006,9 @@
                 localStorage.setItem('gd_active_user', name);
             }
             await saveCloudData();
-            updateAccountsDatalist();
-            closeAuthModal();
-            checkLocalStorageSession();
-            loadDataAndRender();
+            
+            // 🔄 Recarga la página automáticamente sola al iniciar sesión o registrarse
+            window.location.reload();
         };
 
         if (fileInput.files && fileInput.files[0]) {
@@ -1021,8 +1020,7 @@
 
     window.logoutProfile = () => {
         localStorage.removeItem('gd_active_user');
-        checkLocalStorageSession();
-        loadDataAndRender();
+        window.location.reload();
     };
 
     window.openProfileModal = () => {
@@ -1055,11 +1053,7 @@
                 dbData.accounts[activeUser].imageBase64 = imgBase64;
             }
             await saveCloudData();
-            updateAccountsDatalist();
-            closeProfileModal();
-            checkLocalStorageSession();
-            loadDataAndRender();
-            alert(currentLang === 'es' ? "¡Perfil actualizado con éxito!" : "Profile updated successfully!");
+            window.location.reload();
         };
 
         if (fileInput.files && fileInput.files[0]) {
@@ -1078,10 +1072,7 @@
             delete dbData.accounts[activeUser];
             localStorage.removeItem('gd_active_user');
             await saveCloudData();
-            updateAccountsDatalist();
-            closeProfileModal();
-            checkLocalStorageSession();
-            loadDataAndRender();
+            window.location.reload();
         }
     };
 
@@ -1195,12 +1186,10 @@
             dbData.levels.push(newLevel);
             await saveCloudData();
 
-            // Notificación limpia hacia Discord (sin incluir quién lo añadió)
             await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, verifierText);
 
-            closeAddLevelModal();
-            loadDataAndRender();
-            alert("Level added and notified in Discord!");
+            // Recarga automática al añadir nivel para sincronizar todo perfectamente
+            window.location.reload();
         };
 
         if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
@@ -1264,9 +1253,7 @@
             lvl.youtubeUrl = youtubeUrl;
 
             await saveCloudData();
-            closeEditModal();
-            loadDataAndRender();
-            alert(currentLang === 'es' ? "¡Nivel editado con éxito!" : "Level edited successfully!");
+            window.location.reload();
         }
     };
 
@@ -1274,7 +1261,7 @@
         if (confirm(translations[currentLang].delLevelConfirm)) {
             dbData.levels = dbData.levels.filter(l => l.id !== id);
             await saveCloudData();
-            loadDataAndRender();
+            window.location.reload();
         }
     };
 
@@ -1282,8 +1269,7 @@
         if (confirm(currentLang === 'es' ? `¿Eliminar la cuenta de ${username}?` : `Delete account for ${username}?`)) {
             delete dbData.accounts[username];
             await saveCloudData();
-            updateAccountsDatalist();
-            loadDataAndRender();
+            window.location.reload();
         }
     };
 
