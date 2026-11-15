@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="t-pagetitle">La Remake List - GD</title>
+    <title id="t-pagetitle">The Remake List - GD</title>
     <style>
         :root {
             --bg-color: #080808;
@@ -140,7 +140,7 @@
 <header>
     <div class="header-left">
         <div class="title-row">
-            <h1 id="t-title">LA REMAKE LIST</h1>
+            <h1 id="t-title">THE REMAKE LIST</h1>
         </div>
     </div>
     <div class="header-controls">
@@ -156,24 +156,25 @@
             </svg>
         </button>
 
+        <!-- Interruptores de Idioma (US predeterminado, ES alternativo) -->
         <div class="lang-group">
-            <button class="lang-btn active" onclick="setLanguage('es', this)">ES</button>
-            <button class="lang-btn" onclick="setLanguage('en', this)">US</button>
-            <button class="lang-btn" onclick="setLanguage('ru', this)">RU</button>
+            <button class="lang-btn active" id="btnLangUS" onclick="setLanguage('en')">US</button>
+            <button class="lang-btn" id="btnLangES" onclick="setLanguage('es')">ES</button>
         </div>
+
         <div id="authContainer">
-            <button class="btn" id="loginBtn" onclick="openAuthModal()">Iniciar sesión</button>
+            <button class="btn" id="loginBtn" onclick="openAuthModal()">Sign In</button>
         </div>
     </div>
 </header>
 
 <div class="container">
     <div id="adminActionBar" class="admin-action-bar">
-        <button class="btn" onclick="openAddLevelModal()">+ Añadir Nivel</button>
+        <button class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
     </div>
 
     <div id="adminTriggerContainer" style="text-align: right; margin-bottom: 15px; display: none;">
-        <button class="btn-copy" onclick="openAdminCodeModal()" style="font-size: 0.75rem; padding: 4px 10px; background: #111;">🔑 Código Admin</button>
+        <button class="btn-copy" onclick="openAdminCodeModal()" style="font-size: 0.75rem; padding: 4px 10px; background: #111;">🔑 Admin Code</button>
     </div>
 
     <div id="listViewContainer"><div id="demonList"></div></div>
@@ -184,11 +185,11 @@
 <div id="discordModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeDiscordModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Configurar Enlace de Discord</h3>
+        <h3 id="m-disc-title" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Configure Discord Invite</h3>
         <form id="discordForm" onsubmit="handleSaveDiscordUrl(event)">
-            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">URL del servidor de Discord:</label>
-            <input type="url" id="discordUrlInput" placeholder="https://discord.gg/tu-invitacion" required>
-            <button type="submit" class="btn" style="width:100%; padding: 12px; margin-top: 10px;">Guardar y Subir a la Nube</button>
+            <label id="m-disc-label" style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">Discord Server URL:</label>
+            <input type="url" id="discordUrlInput" placeholder="https://discord.gg/your-invite" required>
+            <button type="submit" class="btn" id="m-disc-save" style="width:100%; padding: 12px; margin-top: 10px;">Save & Upload to Cloud</button>
         </form>
     </div>
 </div>
@@ -196,50 +197,50 @@
 <div id="addLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAddLevelModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Añadir Nivel</h3>
+        <h3 id="m-add-title" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Add Level</h3>
         <form id="levelForm" onsubmit="handleAddNewLevel(event)">
-            <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
-            <input type="text" id="lvlCreator" placeholder="Creador" required>
+            <input type="text" id="lvlName" placeholder="Level Name" required>
+            <input type="text" id="lvlCreator" placeholder="Creator" required>
             
-            <label style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">¿Es 2P (Dos Jugadores)?</label>
+            <label id="m-add-is2p" style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">Is it 2P (Two Players)?</label>
             <select id="is2pSelect" onchange="toggle2pOptions()" style="margin-top:5px;">
-                <option value="no">No</option>
-                <option value="yes">Sí</option>
+                <option value="no" id="opt-no">No</option>
+                <option value="yes" id="opt-yes">Yes</option>
             </select>
 
             <div id="verificationTypeContainer" style="display:none; margin-top:10px;">
-                <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.85rem;">Tipo de Verificación:</label>
+                <label id="m-add-verif-type" style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.85rem;">Verification Type:</label>
                 <select id="verificationMode" onchange="toggleVerificationMode()" style="margin-top:5px;">
-                    <option value="solo">Verificado Solo</option>
-                    <option value="duo">Verificado Dúo</option>
+                    <option value="solo" id="opt-solo">Verified Solo</option>
+                    <option value="duo" id="opt-duo">Verified Duo</option>
                 </select>
             </div>
 
             <div style="margin-top:10px;">
-                <label id="verifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verificador:</label>
-                <input type="text" id="lvlVerifier" placeholder="Nombre del verificador 1" required>
+                <label id="verifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verifier:</label>
+                <input type="text" id="lvlVerifier" placeholder="Verifier Name" required>
             </div>
 
             <div id="verifier2Container" style="display:none; margin-top:10px;">
-                <label style="display:block; color:var(--text-muted); font-size:0.85rem;">Segundo Verificador:</label>
-                <input type="text" id="lvlVerifier2" placeholder="Nombre del verificador 2">
+                <label id="verifier2Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Second Verifier:</label>
+                <input type="text" id="lvlVerifier2" placeholder="Second Verifier Name">
             </div>
 
-            <input type="text" id="lvlId" placeholder="ID del nivel de Geometry Dash" required>
-            <input type="number" id="lvlRank" placeholder="Puesto en el Top (Ej: 1)" required>
-            <input type="url" id="lvlYoutube" placeholder="URL del video de YouTube" required>
+            <input type="text" id="lvlId" placeholder="Geometry Dash Level ID" required>
+            <input type="number" id="lvlRank" placeholder="Top Rank Position (Ex: 1)" required>
+            <input type="url" id="lvlYoutube" placeholder="YouTube Video URL" required>
 
             <div class="image-source-selector">
-                <label style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Categoría de Imágenes:</label>
+                <label id="m-add-img-cat" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Image Source:</label>
                 <select id="imageSourceType" onchange="toggleImageSourceInputs()" style="margin-bottom:10px;">
-                    <option value="youtube">Usar miniatura de YouTube</option>
-                    <option value="custom">Subir imagen personalizada</option>
+                    <option value="youtube" id="opt-yt-thumb">Use YouTube Thumbnail</option>
+                    <option value="custom" id="opt-custom-img">Upload Custom Image</option>
                 </select>
                 <div id="customImageContainer" style="display:none;">
                     <input type="file" id="lvlLogoFile" accept="image/*" style="color: var(--text-muted);">
                 </div>
             </div>
-            <button type="submit" class="btn" style="width:100%; padding: 12px;">Añadir Nivel a la Lista</button>
+            <button type="submit" class="btn" id="m-add-submit" style="width:100%; padding: 12px;">Add Level to List</button>
         </form>
     </div>
 </div>
@@ -248,40 +249,40 @@
 <div id="editLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeEditModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Editar Nivel</h3>
+        <h3 id="m-edit-title" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Edit Level</h3>
         <form id="editLevelForm" onsubmit="handleEditLevel(event)">
             <input type="hidden" id="editLvlIdKey">
-            <input type="text" id="editLvlName" placeholder="Nombre del nivel" required>
-            <input type="text" id="editLvlCreator" placeholder="Creador" required>
+            <input type="text" id="editLvlName" placeholder="Level Name" required>
+            <input type="text" id="editLvlCreator" placeholder="Creator" required>
 
-            <label style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">¿Es 2P (Dos Jugadores)?</label>
+            <label id="m-edit-is2p" style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">Is it 2P (Two Players)?</label>
             <select id="editIs2pSelect" onchange="toggleEdit2pOptions()" style="margin-top:5px;">
-                <option value="no">No</option>
-                <option value="yes">Sí</option>
+                <option value="no" id="edit-opt-no">No</option>
+                <option value="yes" id="edit-opt-yes">Yes</option>
             </select>
 
             <div id="editVerificationTypeContainer" style="display:none; margin-top:10px;">
-                <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.85rem;">Tipo de Verificación:</label>
+                <label id="m-edit-verif-type" style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.85rem;">Verification Type:</label>
                 <select id="editVerificationMode" onchange="toggleEditVerificationMode()" style="margin-top:5px;">
-                    <option value="solo">Verificado Solo</option>
-                    <option value="duo">Verificado Dúo</option>
+                    <option value="solo" id="edit-opt-solo">Verified Solo</option>
+                    <option value="duo" id="edit-opt-duo">Verified Duo</option>
                 </select>
             </div>
 
             <div style="margin-top:10px;">
-                <label id="editVerifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verificador:</label>
-                <input type="text" id="editLvlVerifier" placeholder="Nombre del verificador 1" required>
+                <label id="editVerifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verifier:</label>
+                <input type="text" id="editLvlVerifier" placeholder="Verifier Name" required>
             </div>
 
             <div id="editVerifier2Container" style="display:none; margin-top:10px;">
-                <label style="display:block; color:var(--text-muted); font-size:0.85rem;">Segundo Verificador:</label>
-                <input type="text" id="editLvlVerifier2" placeholder="Nombre del verificador 2">
+                <label id="editVerifier2Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Second Verifier:</label>
+                <input type="text" id="editLvlVerifier2" placeholder="Second Verifier Name">
             </div>
 
-            <input type="text" id="editLvlCodeId" placeholder="ID del nivel" required>
-            <input type="number" id="editLvlRank" placeholder="Puesto en el Top" required>
-            <input type="url" id="editLvlYoutube" placeholder="URL del video de YouTube" required>
-            <button type="submit" class="btn" style="width:100%; margin-top:10px; padding: 12px;">Guardar Cambios</button>
+            <input type="text" id="editLvlCodeId" placeholder="Level ID" required>
+            <input type="number" id="editLvlRank" placeholder="Top Rank Position" required>
+            <input type="url" id="editLvlYoutube" placeholder="YouTube Video URL" required>
+            <button type="submit" class="btn" id="m-edit-submit" style="width:100%; margin-top:10px; padding: 12px;">Save Changes</button>
         </form>
     </div>
 </div>
@@ -289,11 +290,11 @@
 <div id="adminCodeModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAdminCodeModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Ingresar Código de Administrador</h3>
+        <h3 id="m-adm-title" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Enter Administrator Code</h3>
         <form onsubmit="verifyAdminCode(event)">
-            <label style="color:var(--text-muted); font-size:0.9rem;">Introduce la clave secreta:</label>
-            <input type="password" id="adminCodeInput" placeholder="Código secreto" required>
-            <button type="submit" class="btn" style="width:100%; padding: 12px; margin-top: 10px;">Verificar Código</button>
+            <label id="m-adm-label" style="color:var(--text-muted); font-size:0.9rem;">Enter secret key:</label>
+            <input type="password" id="adminCodeInput" placeholder="Secret code" required>
+            <button type="submit" class="btn" id="m-adm-submit" style="width:100%; padding: 12px; margin-top: 10px;">Verify Code</button>
         </form>
     </div>
 </div>
@@ -301,15 +302,15 @@
 <div id="authModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-        <h2 style="margin-top:0;">Iniciar Sesión / Registrarse</h2>
+        <h2 id="m-auth-title" style="margin-top:0;">Sign In / Register</h2>
         <form id="authForm" onsubmit="handleAuthSubmit(event)">
-            <label>Tu Nombre de Usuario en GD:</label>
-            <input type="text" id="authName" required placeholder="Introducir">
-            <label>Contraseña:</label>
+            <label id="m-auth-user">Your GD Username:</label>
+            <input type="text" id="authName" required placeholder="Enter">
+            <label id="m-auth-pass">Password:</label>
             <input type="password" id="authPass" required placeholder="••••••••">
-            <label>Sube tu imagen de perfil:</label>
+            <label id="m-auth-img">Upload Profile Image:</label>
             <input type="file" id="authImgFile" accept="image/*" required style="color: var(--text-muted); margin-bottom: 15px;">
-            <button type="submit" class="btn" style="width:100%; padding: 12px;">Continuar</button>
+            <button type="submit" class="btn" id="m-auth-submit" style="width:100%; padding: 12px;">Continue</button>
         </form>
     </div>
 </div>
@@ -317,16 +318,16 @@
 <div id="profileModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeProfileModal()">&times;</span>
-        <h2 style="margin-top:0;">Editar Perfil</h2>
+        <h2 id="m-prof-title" style="margin-top:0;">Edit Profile</h2>
         <form id="profileForm" onsubmit="handleProfileUpdate(event)">
-            <label>Tu Nombre de Usuario en GD:</label>
+            <label id="m-prof-user">Your GD Username:</label>
             <input type="text" id="profileName" required>
-            <label>Nueva Contraseña (opcional):</label>
-            <input type="password" id="profilePass" placeholder="Dejar en blanco para mantener">
-            <label>Cambiar imagen de perfil:</label>
+            <label id="m-prof-pass">New Password (optional):</label>
+            <input type="password" id="profilePass" placeholder="Leave blank to keep">
+            <label id="m-prof-img">Change Profile Image:</label>
             <input type="file" id="profileImgFile" accept="image/*" style="color: var(--text-muted); margin-bottom: 15px;">
-            <button type="submit" class="btn" style="width:100%; margin-bottom:10px; padding: 12px;">Actualizar Perfil</button>
-            <button type="button" class="btn btn-danger" onclick="deleteAccount()" style="width:100%; padding: 12px;">Eliminar Cuenta</button>
+            <button type="submit" class="btn" id="m-prof-update" style="width:100%; margin-bottom:10px; padding: 12px;">Update Profile</button>
+            <button type="button" class="btn btn-danger" id="m-prof-delete" onclick="deleteAccount()" style="width:100%; padding: 12px;">Delete Account</button>
         </form>
     </div>
 </div>
@@ -341,13 +342,13 @@
                 <img id="modalYoutubeThumbImg" src="" class="modal-yt-thumb" alt="YouTube Thumbnail">
                 <div class="modal-yt-overlay">
                     <div class="play-icon-circle"><div class="play-triangle"></div></div>
-                    <span style="color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem;">Ver video en YouTube</span>
+                    <span id="m-modal-yt-text" style="color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem;">Watch video on YouTube</span>
                 </div>
             </div>
         </a>
         <div style="background:#1c1c1c; padding: 12px 15px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-weight: bold;" id="modalLevelIdText">ID: </span>
-            <button class="btn-copy" onclick="copyLevelId()">Copiar ID</button>
+            <button class="btn-copy" id="m-copy-btn" onclick="copyLevelId()">Copy ID</button>
         </div>
     </div>
 </div>
@@ -365,6 +366,223 @@
 
     let currentActiveTab = 'list';
 
+    // Sistema de Traducciones (Predeterminado en Inglés 'en')
+    let currentLang = localStorage.getItem('gd_lang') || 'en';
+
+    const translations = {
+        en: {
+            title: "THE REMAKE LIST",
+            tabList: "List",
+            tabPlayers: "Players",
+            tabPersons: "Persons",
+            signIn: "Sign In",
+            signOut: "Sign Out",
+            adminCode: "🔑 Admin Code",
+            addLevel: "+ Add Level",
+            noLevels: "No levels added yet.",
+            noPlayers: "No verifying players yet.",
+            noPersons: "No registered persons yet.",
+            activeCloudAccount: "Active cloud account",
+            verifRole: "Verifier in the Remake List",
+            watchYt: "Watch video on YouTube",
+            copyId: "Copy ID",
+            idCopied: "ID copied!",
+            delLevelConfirm: "Delete this level for everyone?",
+            delAccountConfirm: "Are you sure you want to delete your account?",
+            edit: "Edit",
+            delete: "Delete",
+            // Modales y formularios
+            mDiscTitle: "Configure Discord Invite",
+            mDiscLabel: "Discord Server URL:",
+            mDiscSave: "Save & Upload to Cloud",
+            mAddTitle: "Add Level",
+            mAddIs2p: "Is it 2P (Two Players)?",
+            optNo: "No",
+            optYes: "Yes",
+            mAddVerifType: "Verification Type:",
+            optSolo: "Verified Solo",
+            optDuo: "Verified Duo",
+            verif1Label: "Verifier:",
+            verif2Label: "Second Verifier:",
+            lvlNamePH: "Level Name",
+            lvlCreatorPH: "Creator",
+            lvlVerifierPH: "Verifier Name",
+            lvlVerifier2PH: "Second Verifier Name",
+            lvlIdPH: "Geometry Dash Level ID",
+            lvlRankPH: "Top Rank Position (Ex: 1)",
+            lvlYoutubePH: "YouTube Video URL",
+            mAddImgCat: "Image Source:",
+            optYtThumb: "Use YouTube Thumbnail",
+            optCustomImg: "Upload Custom Image",
+            mAddSubmit: "Add Level to List",
+            mEditTitle: "Edit Level",
+            mEditSubmit: "Save Changes",
+            mAdmTitle: "Enter Administrator Code",
+            mAdmLabel: "Enter secret key:",
+            mAdmSubmit: "Verify Code",
+            mAuthTitle: "Sign In / Register",
+            mAuthUser: "Your GD Username:",
+            mAuthPass: "Password:",
+            mAuthImg: "Upload Profile Image:",
+            mAuthContinue: "Continue",
+            mProfTitle: "Edit Profile",
+            mProfNewPass: "New Password (optional):",
+            mProfChangeImg: "Change Profile Image:",
+            mProfUpdate: "Update Profile",
+            mProfDelete: "Delete Account"
+        },
+        es: {
+            title: "LA REMAKE LIST",
+            tabList: "Lista",
+            tabPlayers: "Jugadores",
+            tabPersons: "Personas",
+            signIn: "Iniciar sesión",
+            signOut: "Cerrar sesión",
+            adminCode: "🔑 Código Admin",
+            addLevel: "+ Añadir Nivel",
+            noLevels: "No hay niveles añadidos todavía.",
+            noPlayers: "No hay jugadores verificadores todavía.",
+            noPersons: "No hay personas registradas aún.",
+            activeCloudAccount: "Cuenta activa en la nube",
+            verifRole: "Verificador en la Remake List",
+            watchYt: "Ver video en YouTube",
+            copyId: "Copiar ID",
+            idCopied: "¡ID copiado!",
+            delLevelConfirm: "¿Eliminar este nivel para todos?",
+            delAccountConfirm: "¿Estás seguro de eliminar tu cuenta?",
+            edit: "Editar",
+            delete: "Eliminar",
+            // Modales y formularios
+            mDiscTitle: "Configurar Enlace de Discord",
+            mDiscLabel: "URL del servidor de Discord:",
+            mDiscSave: "Guardar y Subir a la Nube",
+            mAddTitle: "Añadir Nivel",
+            mAddIs2p: "¿Es 2P (Dos Jugadores)?",
+            optNo: "No",
+            optYes: "Sí",
+            mAddVerifType: "Tipo de Verificación:",
+            optSolo: "Verificado Solo",
+            optDuo: "Verificado Dúo",
+            verif1Label: "Verificador:",
+            verif2Label: "Segundo Verificador:",
+            lvlNamePH: "Nombre del nivel",
+            lvlCreatorPH: "Creador",
+            lvlVerifierPH: "Nombre del verificador 1",
+            lvlVerifier2PH: "Nombre del verificador 2",
+            lvlIdPH: "ID del nivel de Geometry Dash",
+            lvlRankPH: "Puesto en el Top (Ej: 1)",
+            lvlYoutubePH: "URL del video de YouTube",
+            mAddImgCat: "Categoría de Imágenes:",
+            optYtThumb: "Usar miniatura de YouTube",
+            optCustomImg: "Subir imagen personalizada",
+            mAddSubmit: "Añadir Nivel a la Lista",
+            mEditTitle: "Editar Nivel",
+            mEditSubmit: "Guardar Cambios",
+            mAdmTitle: "Ingresar Código de Administrador",
+            mAdmLabel: "Introduce la clave secreta:",
+            mAdmSubmit: "Verificar Código",
+            mAuthTitle: "Iniciar Sesión / Registrarse",
+            mAuthUser: "Tu Nombre de Usuario en GD:",
+            mAuthPass: "Contraseña:",
+            mAuthImg: "Sube tu imagen de perfil:",
+            mAuthContinue: "Continuar",
+            mProfTitle: "Editar Perfil",
+            mProfNewPass: "Nueva Contraseña (opcional):",
+            mProfChangeImg: "Cambiar imagen de perfil:",
+            mProfUpdate: "Actualizar Perfil",
+            mProfDelete: "Eliminar Cuenta"
+        }
+    };
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('gd_lang', lang);
+        
+        document.getElementById('btnLangUS').classList.toggle('active', lang === 'en');
+        document.getElementById('btnLangES').classList.toggle('active', lang === 'es');
+
+        applyTranslations();
+        loadDataAndRender();
+    }
+
+    function applyTranslations() {
+        const t = translations[currentLang];
+        document.documentElement.lang = currentLang;
+
+        document.getElementById('t-pagetitle').innerText = t.title + " - GD";
+        document.getElementById('t-title').innerText = t.title;
+        document.getElementById('tabListBtn').innerText = t.tabList;
+        document.getElementById('tabPlayersBtn').innerText = t.tabPlayers;
+        document.getElementById('tabPersonsBtn').innerText = t.tabPersons;
+        document.getElementById('addLevelBtnText').innerText = t.addLevel;
+
+        document.getElementById('m-disc-title').innerText = t.mDiscTitle;
+        document.getElementById('m-disc-label').innerText = t.mDiscLabel;
+        document.getElementById('m-disc-save').innerText = t.mDiscSave;
+
+        document.getElementById('m-add-title').innerText = t.mAddTitle;
+        document.getElementById('m-add-is2p').innerText = t.mAddIs2p;
+        document.getElementById('opt-no').innerText = t.optNo;
+        document.getElementById('opt-yes').innerText = t.optYes;
+        document.getElementById('m-add-verif-type').innerText = t.mAddVerifType;
+        document.getElementById('opt-solo').innerText = t.optSolo;
+        document.getElementById('opt-duo').innerText = t.optDuo;
+        document.getElementById('verifier1Label').innerText = t.verif1Label;
+        document.getElementById('verifier2Label').innerText = t.verif2Label;
+
+        document.getElementById('lvlName').placeholder = t.lvlNamePH;
+        document.getElementById('lvlCreator').placeholder = t.lvlCreatorPH;
+        document.getElementById('lvlVerifier').placeholder = t.lvlVerifierPH;
+        document.getElementById('lvlVerifier2').placeholder = t.lvlVerifier2PH;
+        document.getElementById('lvlId').placeholder = t.lvlIdPH;
+        document.getElementById('lvlRank').placeholder = t.lvlRankPH;
+        document.getElementById('lvlYoutube').placeholder = t.lvlYoutubePH;
+
+        document.getElementById('m-add-img-cat').innerText = t.mAddImgCat;
+        document.getElementById('opt-yt-thumb').innerText = t.optYtThumb;
+        document.getElementById('opt-custom-img').innerText = t.optCustomImg;
+        document.getElementById('m-add-submit').innerText = t.mAddSubmit;
+
+        document.getElementById('m-edit-title').innerText = t.mEditTitle;
+        document.getElementById('m-edit-is2p').innerText = t.mEditIs2p;
+        document.getElementById('edit-opt-no').innerText = t.optNo;
+        document.getElementById('edit-opt-yes').innerText = t.optYes;
+        document.getElementById('m-edit-verif-type').innerText = t.mAddVerifType;
+        document.getElementById('edit-opt-solo').innerText = t.optSolo;
+        document.getElementById('edit-opt-duo').innerText = t.optDuo;
+        document.getElementById('editVerifier1Label').innerText = t.verif1Label;
+        document.getElementById('editVerifier2Label').innerText = t.verif2Label;
+
+        document.getElementById('editLvlName').placeholder = t.lvlNamePH;
+        document.getElementById('editLvlCreator').placeholder = t.lvlCreatorPH;
+        document.getElementById('editLvlVerifier').placeholder = t.lvlVerifierPH;
+        document.getElementById('editLvlVerifier2').placeholder = t.lvlVerifier2PH;
+        document.getElementById('editLvlCodeId').placeholder = t.lvlIdPH;
+        document.getElementById('editLvlRank').placeholder = t.lvlRankPH;
+        document.getElementById('editLvlYoutube').placeholder = t.lvlYoutubePH;
+        document.getElementById('m-edit-submit').innerText = t.mEditSubmit;
+
+        document.getElementById('m-adm-title').innerText = t.mAdmTitle;
+        document.getElementById('m-adm-label').innerText = t.mAdmLabel;
+        document.getElementById('m-adm-submit').innerText = t.mAdmSubmit;
+
+        document.getElementById('m-auth-title').innerText = t.mAuthTitle;
+        document.getElementById('m-auth-user').innerText = t.mAuthUser;
+        document.getElementById('m-auth-pass').innerText = t.mAuthPass;
+        document.getElementById('m-auth-img').innerText = t.mAuthImg;
+        document.getElementById('m-auth-submit').innerText = t.mAuthContinue;
+
+        document.getElementById('m-prof-title').innerText = t.mProfTitle;
+        document.getElementById('m-prof-user').innerText = t.mAuthUser;
+        document.getElementById('m-prof-pass').innerText = t.mProfNewPass;
+        document.getElementById('m-prof-img').innerText = t.mProfChangeImg;
+        document.getElementById('m-prof-update').innerText = t.mProfUpdate;
+        document.getElementById('m-prof-delete').innerText = t.mProfDelete;
+
+        document.getElementById('m-modal-yt-text').innerText = t.watchYt;
+        document.getElementById('m-copy-btn').innerText = t.copyId;
+    }
+
     async function fetchCloudData() {
         try {
             const res = await fetch(JSONBIN_URL + "/latest", {
@@ -380,7 +598,7 @@
             console.error("Error al conectar con JSONBin:", err);
         }
         checkLocalStorageSession();
-        loadDataAndRender();
+        applyTranslations();
     }
 
     async function saveCloudData() {
@@ -443,6 +661,8 @@
             adminTriggerContainer.style.display = isAdmin ? 'none' : 'block';
         }
 
+        const t = translations[currentLang];
+
         if (activeUser && dbData.accounts && dbData.accounts[activeUser]) {
             const profile = dbData.accounts[activeUser];
             let avatarHtml = `<img src="${profile.imageBase64 || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
@@ -453,11 +673,11 @@
                         ${avatarHtml}
                         <span style="font-size:0.9rem; font-weight:bold;">${profile.name}</span>
                     </div>
-                    <button class="btn btn-danger" onclick="logoutProfile()" style="padding:6px 10px; font-size:0.8rem;">Cerrar sesión</button>
+                    <button class="btn btn-danger" onclick="logoutProfile()" style="padding:6px 10px; font-size:0.8rem;">${t.signOut}</button>
                 </div>
             `;
         } else {
-            authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">Iniciar sesión</button>`;
+            authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">${t.signIn}</button>`;
         }
     }
 
@@ -470,7 +690,7 @@
             if (dbData.discordUrl) {
                 window.open(dbData.discordUrl, '_blank');
             } else {
-                alert("El enlace de Discord aún no ha sido configurado por el administrador.");
+                alert(currentLang === 'es' ? "El enlace de Discord aún no ha sido configurado por el administrador." : "Discord link has not been configured by the admin yet.");
             }
         }
     };
@@ -483,7 +703,7 @@
         dbData.discordUrl = url;
         await saveCloudData();
         closeDiscordModal();
-        alert("¡Enlace de Discord actualizado y guardado en la nube para todos!");
+        alert(currentLang === 'es' ? "¡Enlace de Discord actualizado y guardado en la nube para todos!" : "Discord link updated and saved to the cloud for everyone!");
     };
 
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
@@ -497,12 +717,12 @@
         const code = document.getElementById('adminCodeInput').value;
         if (code === "6767XDXD") {
             localStorage.setItem('gd_is_admin', 'true');
-            alert("¡Código correcto! Modo administrador activado de por vida en este dispositivo.");
+            alert(currentLang === 'es' ? "¡Código correcto! Modo administrador activado de por vida en este dispositivo." : "Correct code! Admin mode activated permanently on this device.");
             closeAdminCodeModal();
             checkLocalStorageSession();
             loadDataAndRender();
         } else {
-            alert("Código incorrecto.");
+            alert(currentLang === 'es' ? "Código incorrecto." : "Incorrect code.");
         }
     };
 
@@ -522,7 +742,7 @@
                         dbData.accounts[name].imageBase64 = imgBase64;
                     }
                 } else {
-                    alert("Contraseña incorrecta.");
+                    alert(currentLang === 'es' ? "Contraseña incorrecta." : "Incorrect password.");
                     return;
                 }
             } else {
@@ -578,7 +798,7 @@
             closeProfileModal();
             checkLocalStorageSession();
             loadDataAndRender();
-            alert("¡Perfil actualizado con éxito!");
+            alert(currentLang === 'es' ? "¡Perfil actualizado con éxito!" : "Profile updated successfully!");
         };
 
         if (fileInput.files && fileInput.files[0]) {
@@ -593,7 +813,7 @@
     window.deleteAccount = async () => {
         const activeUser = localStorage.getItem('gd_active_user');
         if (!activeUser) return;
-        if (confirm("¿Estás seguro de eliminar tu cuenta?")) {
+        if (confirm(translations[currentLang].delAccountConfirm)) {
             delete dbData.accounts[activeUser];
             localStorage.removeItem('gd_active_user');
             await saveCloudData();
@@ -616,7 +836,7 @@
         container.style.display = (val === 'yes') ? 'block' : 'none';
         if (val === 'no') {
             document.getElementById('verifier2Container').style.display = 'none';
-            document.getElementById('verifier1Label').innerText = "Verificador:";
+            document.getElementById('verifier1Label').innerText = translations[currentLang].verif1Label;
         } else {
             toggleVerificationMode();
         }
@@ -626,12 +846,13 @@
         const mode = document.getElementById('verificationMode').value;
         const verifier2Container = document.getElementById('verifier2Container');
         const verifier1Label = document.getElementById('verifier1Label');
+        const t = translations[currentLang];
         if (mode === 'duo') {
-            verifier1Label.innerText = "Verificador 1:";
+            verifier1Label.innerText = t.verif1Label.replace(":", " 1:");
             verifier2Container.style.display = 'block';
             document.getElementById('lvlVerifier2').required = true;
         } else {
-            verifier1Label.innerText = "Verificador:";
+            verifier1Label.innerText = t.verif1Label;
             verifier2Container.style.display = 'none';
             document.getElementById('lvlVerifier2').required = false;
         }
@@ -643,7 +864,7 @@
         container.style.display = (val === 'yes') ? 'block' : 'none';
         if (val === 'no') {
             document.getElementById('editVerifier2Container').style.display = 'none';
-            document.getElementById('editVerifier1Label').innerText = "Verificador:";
+            document.getElementById('editVerifier1Label').innerText = translations[currentLang].verif1Label;
         } else {
             toggleEditVerificationMode();
         }
@@ -653,12 +874,13 @@
         const mode = document.getElementById('editVerificationMode').value;
         const verifier2Container = document.getElementById('editVerifier2Container');
         const verifier1Label = document.getElementById('editVerifier1Label');
+        const t = translations[currentLang];
         if (mode === 'duo') {
-            verifier1Label.innerText = "Verificador 1:";
+            verifier1Label.innerText = t.verif1Label.replace(":", " 1:");
             verifier2Container.style.display = 'block';
             document.getElementById('editLvlVerifier2').required = true;
         } else {
-            verifier1Label.innerText = "Verificador:";
+            verifier1Label.innerText = t.verif1Label;
             verifier2Container.style.display = 'none';
             document.getElementById('editLvlVerifier2').required = false;
         }
@@ -684,14 +906,12 @@
         const imageSource = document.getElementById('imageSourceType').value;
         const fileInput = document.getElementById('lvlLogoFile');
 
-        // Validar verificador 1
         if (!dbData.accounts || !dbData.accounts[verifier1]) {
-            alert(`⚠️ Aviso: El verificador "${verifier1}" no ha iniciado sesión o no tiene cuenta registrada.`);
+            alert(currentLang === 'es' ? `⚠️ Aviso: El verificador "${verifier1}" no ha iniciado sesión o no tiene cuenta registrada.` : `⚠️ Notice: Verifier "${verifier1}" has not signed in or doesn't have a registered account.`);
         }
-        // Validar verificador 2 si es dúo
         if (verificationMode === 'duo' && verifier2) {
             if (!dbData.accounts || !dbData.accounts[verifier2]) {
-                alert(`⚠️ Aviso: El segundo verificador "${verifier2}" no ha iniciado sesión o no tiene cuenta registrada.`);
+                alert(currentLang === 'es' ? `⚠️ Aviso: El segundo verificador "${verifier2}" no ha iniciado sesión o no tiene cuenta registrada.` : `⚠️ Notice: Second verifier "${verifier2}" has not signed in or doesn't have a registered account.`);
             }
         }
 
@@ -717,7 +937,7 @@
             await saveCloudData();
             closeAddLevelModal();
             loadDataAndRender();
-            alert("¡Nivel añadido y sincronizado con los jugadores en la nube!");
+            alert(currentLang === 'es' ? "¡Nivel añadido y sincronizado con los jugadores en la nube!" : "Level added and synchronized with players in the cloud!");
         };
 
         if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
@@ -783,12 +1003,12 @@
             await saveCloudData();
             closeEditModal();
             loadDataAndRender();
-            alert("¡Nivel editado con éxito!");
+            alert(currentLang === 'es' ? "¡Nivel editado con éxito!" : "Level edited successfully!");
         }
     };
 
     window.deleteLevel = async (id) => {
-        if (confirm("¿Eliminar este nivel para todos?")) {
+        if (confirm(translations[currentLang].delLevelConfirm)) {
             dbData.levels = dbData.levels.filter(l => l.id !== id);
             await saveCloudData();
             loadDataAndRender();
@@ -796,7 +1016,7 @@
     };
 
     window.deleteRegisteredPerson = async (username) => {
-        if (confirm(`¿Eliminar la cuenta de ${username}?`)) {
+        if (confirm(currentLang === 'es' ? `¿Eliminar la cuenta de ${username}?` : `Delete account for ${username}?`)) {
             delete dbData.accounts[username];
             await saveCloudData();
             loadDataAndRender();
@@ -807,10 +1027,11 @@
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         let levels = dbData.levels || [];
         levels.sort((a, b) => a.rank - b.rank);
+        const t = translations[currentLang];
 
         if (currentActiveTab === 'list') {
             const container = document.getElementById('demonList');
-            container.innerHTML = levels.length === 0 ? "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay niveles añadidos todavía.</p>" : "";
+            container.innerHTML = levels.length === 0 ? `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noLevels}</p>` : "";
             
             levels.forEach(lvl => {
                 const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
@@ -830,12 +1051,12 @@
                     ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
                     <div class="level-info">
                         <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                        <p class="level-creator">Por ${lvl.creator} • Verificado por ${verifierText} ${lvl.is2p ? '(2P)' : ''}</p>
+                        <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''}</p>
                     </div>
                     <div class="level-points">${points} pts</div>
                     <div class="level-actions">
-                        ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">Editar</button>` : ''}
-                        ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">Eliminar</button>` : ''}
+                        ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">${t.edit}</button>` : ''}
+                        ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">${t.delete}</button>` : ''}
                     </div>
                 `;
                 container.appendChild(card);
@@ -865,7 +1086,7 @@
             playersArr.sort((a, b) => b.points - a.points);
 
             if (playersArr.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay jugadores verificadores todavía.</p>";
+                container.innerHTML = `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noPlayers}</p>`;
                 return;
             }
 
@@ -877,7 +1098,7 @@
                     <img src="${player.imageBase64 || 'https://via.placeholder.com/45'}" class="player-avatar" onerror="this.src='https://via.placeholder.com/45'">
                     <div class="player-info">
                         <h3 class="player-name">${player.name}</h3>
-                        <p class="player-details">Verificador en la Remake List</p>
+                        <p class="player-details">${t.verifRole}</p>
                     </div>
                     <div class="player-points">${player.points} pts</div>
                 `;
@@ -891,7 +1112,7 @@
             const accountsArr = Object.values(dbData.accounts || {});
 
             if (accountsArr.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay personas registradas aún.</p>";
+                container.innerHTML = `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noPersons}</p>`;
                 return;
             }
 
@@ -902,9 +1123,9 @@
                     <img src="${person.imageBase64 || 'https://via.placeholder.com/45'}" class="person-avatar" onerror="this.src='https://via.placeholder.com/45'">
                     <div class="person-info">
                         <h3 class="person-name">${person.name}</h3>
-                        <p class="person-details">Cuenta activa en la nube</p>
+                        <p class="person-details">${t.activeCloudAccount}</p>
                     </div>
-                    ${isAdmin ? `<div class="person-actions"><button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteRegisteredPerson('${person.name}')">Eliminar Cuenta</button></div>` : ''}
+                    ${isAdmin ? `<div class="person-actions"><button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteRegisteredPerson('${person.name}')">${t.delete}</button></div>` : ''}
                 `;
                 container.appendChild(card);
             });
@@ -917,7 +1138,7 @@
         if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
             verifierText += ` & ${lvl.verifier2}`;
         }
-        document.getElementById('modalLevelCreators').innerText = `Por ${lvl.creator} • Verificado por ${verifierText}`;
+        document.getElementById('modalLevelCreators').innerText = `${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText}`;
         document.getElementById('modalLevelIdText').innerText = `ID: ${lvl.levelId}`;
         document.getElementById('modalYoutubeAnchor').href = lvl.youtubeUrl;
         document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
@@ -926,7 +1147,11 @@
     };
 
     window.closeDetailModal = () => { document.getElementById('levelDetailModal').style.display = 'none'; };
-    window.copyLevelId = () => { navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => alert("¡ID copiado!")); };
+    window.copyLevelId = () => { navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => alert(translations[currentLang].idCopied)); };
+
+    // Inicializar idioma guardado y cargar datos
+    document.getElementById('btnLangUS').classList.toggle('active', currentLang === 'en');
+    document.getElementById('btnLangES').classList.toggle('active', currentLang === 'es');
 
     fetchCloudData();
 </script>
