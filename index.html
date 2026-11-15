@@ -51,13 +51,6 @@
         .title-row { display: flex; align-items: center; gap: 15px; }
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent); }
 
-        .update-badge {
-            background: linear-gradient(135deg, #00ffcc, #00d2ff);
-            color: #000; font-size: 0.7rem; font-weight: bold;
-            padding: 3px 6px; border-radius: 4px; text-transform: uppercase;
-            letter-spacing: 1px; display: none; width: fit-content;
-        }
-
         .header-controls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
 
         .nav-tabs {
@@ -90,17 +83,9 @@
         }
         .btn:hover { opacity: 0.85; }
         .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-        .btn-edit { background: linear-gradient(135deg, #f7b733, #f39c12); color: #000; padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; }
         .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; }
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
-
-        .admin-alert-box {
-            background: rgba(255, 65, 108, 0.15); border: 1px solid #ff416c;
-            padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;
-        }
-        .admin-alert-box h4 { margin: 0 0 8px 0; color: #ff416c; font-size: 1rem; }
-        .admin-alert-box ul { margin: 0; padding-left: 20px; font-size: 0.9rem; color: #ff99a8; }
 
         .admin-action-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
@@ -113,11 +98,10 @@
         .level-info, .player-info, .person-info { flex-grow: 1; }
         .level-title, .player-name, .person-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
         .level-creator, .player-details, .person-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
-        .level-points, .player-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
-        .level-actions, .player-actions, .person-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
+        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
+        .level-actions, .person-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
 
-        .player-avatar, .person-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
-        .player-rank { font-size: 1.2rem; font-weight: bold; color: var(--accent); width: 35px; text-align: center; margin-right: 10px; }
+        .person-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -155,7 +139,6 @@
         <div class="title-row">
             <h1 id="t-title">LA REMAKE LIST</h1>
         </div>
-        <div id="updateBadge" class="update-badge">Página actualizada recientemente</div>
     </div>
     <div class="header-controls">
         <div class="nav-tabs">
@@ -163,12 +146,6 @@
             <button class="nav-tab-btn" id="tabPlayersBtn" onclick="switchTab('players')">Players</button>
             <button class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
-
-        <button class="discord-btn" id="discordHeaderBtn" onclick="handleDiscordClick()" title="Discord">
-            <svg class="discord-icon" viewBox="0 0 24 24">
-                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-        </button>
 
         <div class="lang-group">
             <button class="lang-btn active" onclick="setLanguage('es', this)">ES</button>
@@ -182,31 +159,14 @@
 </header>
 
 <div class="container">
-    <div id="adminAlertBox" class="admin-alert-box">
-        <h4>⚠️ Alerta de Administrador (Verificadores sin cuenta):</h4>
-        <ul id="adminAlertList"></ul>
-    </div>
-
     <div id="adminActionBar" class="admin-action-bar" style="display: none;">
         <button class="btn" onclick="openAddLevelModal()">+ Añadir Nivel</button>
-        <button class="btn" onclick="openAddPlayerModal()" style="background: linear-gradient(135deg, #f7b733, #f39c12); color:#000;">+ Añadir Jugador Manual</button>
+        <button class="btn" onclick="openAdminCodeModal()" style="background: linear-gradient(135deg, #f7b733, #f39c12); color:#000;">🔑 Código Admin</button>
     </div>
 
     <div id="listViewContainer"><div id="demonList"></div></div>
     <div id="playersViewContainer" style="display: none;"><div id="playersList"></div></div>
     <div id="personsViewContainer" style="display: none;"><div id="personsList"></div></div>
-</div>
-
-<div id="discordModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeDiscordModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Configurar Enlace de Discord</h3>
-        <form id="discordForm" onsubmit="handleSaveDiscordUrl(event)">
-            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">URL del servidor de Discord:</label>
-            <input type="url" id="discordUrlInput" placeholder="https://discord.gg/tu-invitacion" required>
-            <button type="submit" class="btn" style="width:100%; padding: 12px; margin-top: 10px;">Guardar URL</button>
-        </form>
-    </div>
 </div>
 
 <div id="addLevelModal" class="modal">
@@ -236,17 +196,14 @@
     </div>
 </div>
 
-<div id="playerModal" class="modal">
+<div id="adminCodeModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closePlayerModal()">&times;</span>
-        <h3 id="playerModalTitle" style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Añadir Jugador</h3>
-        <form id="playerForm" onsubmit="handleSaveManualPlayer(event)">
-            <input type="hidden" id="playerEditKey">
-            <input type="text" id="manualPlayerName" placeholder="Nombre de usuario" required>
-            <input type="number" id="manualPlayerPoints" placeholder="Puntos iniciales" value="0" required>
-            <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">Imagen de perfil:</label>
-            <input type="file" id="manualPlayerImgFile" accept="image/*" style="color: var(--text-muted); margin-bottom:15px;">
-            <button type="submit" class="btn" style="width:100%; padding: 12px;">Guardar Jugador</button>
+        <span class="close-btn" onclick="closeAdminCodeModal()">&times;</span>
+        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Ingresar Código de Administrador</h3>
+        <form onsubmit="verifyAdminCode(event)">
+            <label style="color:var(--text-muted); font-size:0.9rem;">Introduce la clave secreta:</label>
+            <input type="password" id="adminCodeInput" placeholder="Código secreto" required>
+            <button type="submit" class="btn" style="width:100%; padding: 12px; margin-top: 10px;">Verificar Código</button>
         </form>
     </div>
 </div>
@@ -284,23 +241,6 @@
     </div>
 </div>
 
-<div id="editLevelModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeEditModal()">&times;</span>
-        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Editar Nivel</h3>
-        <form id="editLevelForm" onsubmit="handleEditLevel(event)">
-            <input type="hidden" id="editLvlIdKey">
-            <input type="text" id="editLvlName" placeholder="Nombre del nivel" required>
-            <input type="text" id="editLvlCreator" placeholder="Creador" required>
-            <input type="text" id="editLvlVerifier" placeholder="Verificador" required>
-            <input type="text" id="editLvlCodeId" placeholder="ID del nivel" required>
-            <input type="number" id="editLvlRank" placeholder="Puesto en el Top" required>
-            <input type="url" id="editLvlYoutube" placeholder="URL del video de YouTube" required>
-            <button type="submit" class="btn" style="width:100%; margin-top:10px; padding: 12px;">Guardar Cambios</button>
-        </form>
-    </div>
-</div>
-
 <div id="levelDetailModal" class="modal">
     <div class="modal-content" style="text-align: center;">
         <span class="close-btn" onclick="closeDetailModal()">&times;</span>
@@ -323,7 +263,6 @@
 </div>
 
 <script>
-    // Configuración de JSONBin.io con tus credenciales
     const BIN_ID = "6af91a2effd5d16053c23e4f";
     const MASTER_KEY = "$2a$10$rEXcAt7DiTo1qjWclq7hoOOYciqND75Ww3q9jhHenELrejQYvPNr6";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
@@ -335,15 +274,12 @@
         accounts: {}
     };
 
-    let currentLang = 'es';
     let currentActiveTab = 'list';
 
     async function fetchCloudData() {
         try {
             const res = await fetch(JSONBIN_URL + "/latest", {
-                headers: {
-                    'X-Master-Key': MASTER_KEY
-                }
+                headers: { 'X-Master-Key': MASTER_KEY }
             });
             if (res.ok) {
                 const json = await res.json();
@@ -368,9 +304,7 @@
                 },
                 body: JSON.stringify(dbData)
             });
-            if (!res.ok) {
-                throw new Error("Error en la respuesta del servidor");
-            }
+            if (!res.ok) throw new Error("Error en la respuesta del servidor");
         } catch (err) {
             console.error("Error al guardar en JSONBin:", err);
             alert("Error al sincronizar con la nube. Revisa tu conexión.");
@@ -408,16 +342,17 @@
 
     function checkLocalStorageSession() {
         const activeUser = localStorage.getItem('gd_active_user');
-        const adminAccount = localStorage.getItem('gd_admin_account');
+        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         const authContainer = document.getElementById('authContainer');
         const adminActionBar = document.getElementById('adminActionBar');
+
+        if (adminActionBar) {
+            adminActionBar.style.display = isAdmin ? 'flex' : 'none';
+        }
 
         if (activeUser && dbData.accounts && dbData.accounts[activeUser]) {
             const profile = dbData.accounts[activeUser];
             let avatarHtml = `<img src="${profile.imageBase64 || 'https://via.placeholder.com/34'}" class="avatar-circle" onerror="this.src='https://via.placeholder.com/34'">`;
-            const isThisAccountAdmin = (adminAccount === activeUser);
-
-            if (adminActionBar) adminActionBar.style.display = isThisAccountAdmin ? 'flex' : 'none';
 
             authContainer.innerHTML = `
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -430,12 +365,28 @@
             `;
         } else {
             authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">Iniciar sesión</button>`;
-            if (adminActionBar) adminActionBar.style.display = 'none';
         }
     }
 
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
     window.closeAuthModal = () => { document.getElementById('authModal').style.display = 'none'; };
+
+    window.openAdminCodeModal = () => { document.getElementById('adminCodeModal').style.display = 'flex'; };
+    window.closeAdminCodeModal = () => { document.getElementById('adminCodeModal').style.display = 'none'; };
+
+    window.verifyAdminCode = (e) => {
+        e.preventDefault();
+        const code = document.getElementById('adminCodeInput').value;
+        if (code === "6767XDXD") {
+            localStorage.setItem('gd_is_admin', 'true');
+            alert("¡Código correcto! Modo administrador activado.");
+            closeAdminCodeModal();
+            checkLocalStorageSession();
+            loadDataAndRender();
+        } else {
+            alert("Código incorrecto.");
+        }
+    };
 
     window.handleAuthSubmit = async (e) => {
         e.preventDefault();
@@ -474,12 +425,16 @@
 
     window.logoutProfile = () => {
         localStorage.removeItem('gd_active_user');
+        localStorage.removeItem('gd_is_admin'); // Se desactiva el admin al cerrar sesión
         checkLocalStorageSession();
         loadDataAndRender();
     };
 
     window.openProfileModal = () => { document.getElementById('profileModal').style.display = 'flex'; };
     window.closeProfileModal = () => { document.getElementById('profileModal').style.display = 'none'; };
+
+    window.openAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'flex'; };
+    window.closeAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'none'; };
 
     window.handleAddNewLevel = async (e) => {
         e.preventDefault();
@@ -530,13 +485,7 @@
     };
 
     function loadDataAndRender() {
-        const activeUser = localStorage.getItem('gd_active_user');
-        const adminAccount = localStorage.getItem('gd_admin_account');
-        const isAdmin = (adminAccount === activeUser);
-
-        const adminActionBar = document.getElementById('adminActionBar');
-        if (adminActionBar) adminActionBar.style.display = isAdmin ? 'flex' : 'none';
-
+        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         let levels = dbData.levels || [];
         levels.sort((a, b) => a.rank - b.rank);
 
@@ -604,8 +553,6 @@
 
     window.closeDetailModal = () => { document.getElementById('levelDetailModal').style.display = 'none'; };
     window.copyLevelId = () => { navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => alert("¡ID copiado!")); };
-    window.openAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'flex'; };
-    window.closeAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'none'; };
 
     fetchCloudData();
 </script>
