@@ -84,6 +84,7 @@
         }
         .btn:hover { opacity: 0.85; }
         .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .btn-edit { background: linear-gradient(135deg, #f7b733, #f39c12); color: #000; padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; }
         .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; }
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
@@ -149,7 +150,6 @@
             <button class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
 
-        <!-- Botón de Discord en la barra -->
         <button class="discord-btn" id="discordHeaderBtn" onclick="handleDiscordClick()" title="Discord">
             <svg class="discord-icon" viewBox="0 0 24 24">
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
@@ -181,7 +181,6 @@
     <div id="personsViewContainer" style="display: none;"><div id="personsList"></div></div>
 </div>
 
-<!-- Modal para configurar Discord si eres admin -->
 <div id="discordModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeDiscordModal()">&times;</span>
@@ -201,7 +200,31 @@
         <form id="levelForm" onsubmit="handleAddNewLevel(event)">
             <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
             <input type="text" id="lvlCreator" placeholder="Creador" required>
-            <input type="text" id="lvlVerifier" placeholder="Verificador" required>
+            
+            <label style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">¿Es 2P (Dos Jugadores)?</label>
+            <select id="is2pSelect" onchange="toggle2pOptions()" style="margin-top:5px;">
+                <option value="no">No</option>
+                <option value="yes">Sí</option>
+            </select>
+
+            <div id="verificationTypeContainer" style="display:none; margin-top:10px;">
+                <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.85rem;">Tipo de Verificación:</label>
+                <select id="verificationMode" onchange="toggleVerificationMode()" style="margin-top:5px;">
+                    <option value="solo">Verificado Solo</option>
+                    <option value="duo">Verificado Dúo</option>
+                </select>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label id="verifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verificador:</label>
+                <input type="text" id="lvlVerifier" placeholder="Nombre del verificador 1" required>
+            </div>
+
+            <div id="verifier2Container" style="display:none; margin-top:10px;">
+                <label style="display:block; color:var(--text-muted); font-size:0.85rem;">Segundo Verificador:</label>
+                <input type="text" id="lvlVerifier2" placeholder="Nombre del verificador 2">
+            </div>
+
             <input type="text" id="lvlId" placeholder="ID del nivel de Geometry Dash" required>
             <input type="number" id="lvlRank" placeholder="Puesto en el Top (Ej: 1)" required>
             <input type="url" id="lvlYoutube" placeholder="URL del video de YouTube" required>
@@ -217,6 +240,48 @@
                 </div>
             </div>
             <button type="submit" class="btn" style="width:100%; padding: 12px;">Añadir Nivel a la Lista</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para editar nivel -->
+<div id="editLevelModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeEditModal()">&times;</span>
+        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;">Editar Nivel</h3>
+        <form id="editLevelForm" onsubmit="handleEditLevel(event)">
+            <input type="hidden" id="editLvlIdKey">
+            <input type="text" id="editLvlName" placeholder="Nombre del nivel" required>
+            <input type="text" id="editLvlCreator" placeholder="Creador" required>
+
+            <label style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">¿Es 2P (Dos Jugadores)?</label>
+            <select id="editIs2pSelect" onchange="toggleEdit2pOptions()" style="margin-top:5px;">
+                <option value="no">No</option>
+                <option value="yes">Sí</option>
+            </select>
+
+            <div id="editVerificationTypeContainer" style="display:none; margin-top:10px;">
+                <label style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.85rem;">Tipo de Verificación:</label>
+                <select id="editVerificationMode" onchange="toggleEditVerificationMode()" style="margin-top:5px;">
+                    <option value="solo">Verificado Solo</option>
+                    <option value="duo">Verificado Dúo</option>
+                </select>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label id="editVerifier1Label" style="display:block; color:var(--text-muted); font-size:0.85rem;">Verificador:</label>
+                <input type="text" id="editLvlVerifier" placeholder="Nombre del verificador 1" required>
+            </div>
+
+            <div id="editVerifier2Container" style="display:none; margin-top:10px;">
+                <label style="display:block; color:var(--text-muted); font-size:0.85rem;">Segundo Verificador:</label>
+                <input type="text" id="editLvlVerifier2" placeholder="Nombre del verificador 2">
+            </div>
+
+            <input type="text" id="editLvlCodeId" placeholder="ID del nivel" required>
+            <input type="number" id="editLvlRank" placeholder="Puesto en el Top" required>
+            <input type="url" id="editLvlYoutube" placeholder="URL del video de YouTube" required>
+            <button type="submit" class="btn" style="width:100%; margin-top:10px; padding: 12px;">Guardar Cambios</button>
         </form>
     </div>
 </div>
@@ -396,15 +461,12 @@
         }
     }
 
-    // Manejo del botón de Discord según sea Admin o Usuario normal
     window.handleDiscordClick = () => {
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         if (isAdmin) {
-            // Si es admin, abre el modal para editar/configurar el link
             document.getElementById('discordUrlInput').value = dbData.discordUrl || '';
             document.getElementById('discordModal').style.display = 'flex';
         } else {
-            // Si no es admin, lo manda directo al link guardado en la nube
             if (dbData.discordUrl) {
                 window.open(dbData.discordUrl, '_blank');
             } else {
@@ -541,8 +603,66 @@
         }
     };
 
-    window.openAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'flex'; };
+    window.openAddLevelModal = () => {
+        document.getElementById('is2pSelect').value = "no";
+        toggle2pOptions();
+        document.getElementById('addLevelModal').style.display = 'flex';
+    };
     window.closeAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'none'; };
+
+    window.toggle2pOptions = () => {
+        const val = document.getElementById('is2pSelect').value;
+        const container = document.getElementById('verificationTypeContainer');
+        container.style.display = (val === 'yes') ? 'block' : 'none';
+        if (val === 'no') {
+            document.getElementById('verifier2Container').style.display = 'none';
+            document.getElementById('verifier1Label').innerText = "Verificador:";
+        } else {
+            toggleVerificationMode();
+        }
+    };
+
+    window.toggleVerificationMode = () => {
+        const mode = document.getElementById('verificationMode').value;
+        const verifier2Container = document.getElementById('verifier2Container');
+        const verifier1Label = document.getElementById('verifier1Label');
+        if (mode === 'duo') {
+            verifier1Label.innerText = "Verificador 1:";
+            verifier2Container.style.display = 'block';
+            document.getElementById('lvlVerifier2').required = true;
+        } else {
+            verifier1Label.innerText = "Verificador:";
+            verifier2Container.style.display = 'none';
+            document.getElementById('lvlVerifier2').required = false;
+        }
+    };
+
+    window.toggleEdit2pOptions = () => {
+        const val = document.getElementById('editIs2pSelect').value;
+        const container = document.getElementById('editVerificationTypeContainer');
+        container.style.display = (val === 'yes') ? 'block' : 'none';
+        if (val === 'no') {
+            document.getElementById('editVerifier2Container').style.display = 'none';
+            document.getElementById('editVerifier1Label').innerText = "Verificador:";
+        } else {
+            toggleEditVerificationMode();
+        }
+    };
+
+    window.toggleEditVerificationMode = () => {
+        const mode = document.getElementById('editVerificationMode').value;
+        const verifier2Container = document.getElementById('editVerifier2Container');
+        const verifier1Label = document.getElementById('editVerifier1Label');
+        if (mode === 'duo') {
+            verifier1Label.innerText = "Verificador 1:";
+            verifier2Container.style.display = 'block';
+            document.getElementById('editLvlVerifier2').required = true;
+        } else {
+            verifier1Label.innerText = "Verificador:";
+            verifier2Container.style.display = 'none';
+            document.getElementById('editLvlVerifier2').required = false;
+        }
+    };
 
     window.toggleImageSourceInputs = () => {
         const val = document.getElementById('imageSourceType').value;
@@ -553,18 +673,42 @@
         e.preventDefault();
         const name = document.getElementById('lvlName').value.trim();
         const creator = document.getElementById('lvlCreator').value.trim();
-        const verifier = document.getElementById('lvlVerifier').value.trim();
+        const is2p = document.getElementById('is2pSelect').value === 'yes';
+        const verificationMode = is2p ? document.getElementById('verificationMode').value : 'solo';
+        const verifier1 = document.getElementById('lvlVerifier').value.trim();
+        const verifier2 = (is2p && verificationMode === 'duo') ? document.getElementById('lvlVerifier2').value.trim() : '';
+
         const levelId = document.getElementById('lvlId').value.trim();
         const rank = Number(document.getElementById('lvlRank').value);
         const youtubeUrl = document.getElementById('lvlYoutube').value.trim();
         const imageSource = document.getElementById('imageSourceType').value;
         const fileInput = document.getElementById('lvlLogoFile');
 
-        if (!dbData.accounts || !dbData.accounts[verifier]) {
-            alert(`⚠️ Aviso: El verificador "${verifier}" no ha iniciado sesión o no tiene cuenta registrada en la plataforma.`);
+        // Validar verificador 1
+        if (!dbData.accounts || !dbData.accounts[verifier1]) {
+            alert(`⚠️ Aviso: El verificador "${verifier1}" no ha iniciado sesión o no tiene cuenta registrada.`);
+        }
+        // Validar verificador 2 si es dúo
+        if (verificationMode === 'duo' && verifier2) {
+            if (!dbData.accounts || !dbData.accounts[verifier2]) {
+                alert(`⚠️ Aviso: El segundo verificador "${verifier2}" no ha iniciado sesión o no tiene cuenta registrada.`);
+            }
         }
 
-        const newLevel = { id: 'lvl_' + Date.now(), name, creator, verifier, levelId, rank, youtubeUrl, imageSource, logoBase64: '' };
+        const newLevel = {
+            id: 'lvl_' + Date.now(),
+            name,
+            creator,
+            is2p,
+            verificationMode,
+            verifier: verifier1,
+            verifier2: verifier2,
+            levelId,
+            rank,
+            youtubeUrl,
+            imageSource,
+            logoBase64: ''
+        };
 
         const saveIt = async (logo) => {
             newLevel.logoBase64 = logo || '';
@@ -582,6 +726,64 @@
             reader.readAsDataURL(fileInput.files[0]);
         } else {
             await saveIt('');
+        }
+    };
+
+    window.openEditModal = (lvl) => {
+        document.getElementById('editLvlIdKey').value = lvl.id;
+        document.getElementById('editLvlName').value = lvl.name;
+        document.getElementById('editLvlCreator').value = lvl.creator;
+        
+        const is2p = lvl.is2p || false;
+        document.getElementById('editIs2pSelect').value = is2p ? 'yes' : 'no';
+        toggleEdit2pOptions();
+
+        if (is2p) {
+            document.getElementById('editVerificationMode').value = lvl.verificationMode || 'solo';
+            toggleEditVerificationMode();
+        }
+
+        document.getElementById('editLvlVerifier').value = lvl.verifier || '';
+        document.getElementById('editLvlVerifier2').value = lvl.verifier2 || '';
+        document.getElementById('editLvlCodeId').value = lvl.levelId;
+        document.getElementById('editLvlRank').value = lvl.rank;
+        document.getElementById('editLvlYoutube').value = lvl.youtubeUrl;
+
+        document.getElementById('editLevelModal').style.display = 'flex';
+    };
+
+    window.closeEditModal = () => { document.getElementById('editLevelModal').style.display = 'none'; };
+
+    window.handleEditLevel = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editLvlIdKey').value;
+        const name = document.getElementById('editLvlName').value.trim();
+        const creator = document.getElementById('editLvlCreator').value.trim();
+        const is2p = document.getElementById('editIs2pSelect').value === 'yes';
+        const verificationMode = is2p ? document.getElementById('editVerificationMode').value : 'solo';
+        const verifier1 = document.getElementById('editLvlVerifier').value.trim();
+        const verifier2 = (is2p && verificationMode === 'duo') ? document.getElementById('editLvlVerifier2').value.trim() : '';
+
+        const levelId = document.getElementById('editLvlCodeId').value.trim();
+        const rank = Number(document.getElementById('editLvlRank').value);
+        const youtubeUrl = document.getElementById('editLvlYoutube').value.trim();
+
+        let lvl = dbData.levels.find(l => l.id === id);
+        if (lvl) {
+            lvl.name = name;
+            lvl.creator = creator;
+            lvl.is2p = is2p;
+            lvl.verificationMode = verificationMode;
+            lvl.verifier = verifier1;
+            lvl.verifier2 = verifier2;
+            lvl.levelId = levelId;
+            lvl.rank = rank;
+            lvl.youtubeUrl = youtubeUrl;
+
+            await saveCloudData();
+            closeEditModal();
+            loadDataAndRender();
+            alert("¡Nivel editado con éxito!");
         }
     };
 
@@ -615,6 +817,11 @@
                 const ytId = extractYouTubeId(lvl.youtubeUrl);
                 const thumbUrl = (lvl.imageSource === 'custom' && lvl.logoBase64) ? lvl.logoBase64 : (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '');
 
+                let verifierText = lvl.verifier;
+                if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
+                    verifierText = `${lvl.verifier} & ${lvl.verifier2}`;
+                }
+
                 const card = document.createElement('div');
                 card.className = 'level-card';
                 card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openDetailModal(lvl, thumbUrl); };
@@ -623,10 +830,13 @@
                     ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
                     <div class="level-info">
                         <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                        <p class="level-creator">Por ${lvl.creator} • Verificado por ${lvl.verifier}</p>
+                        <p class="level-creator">Por ${lvl.creator} • Verificado por ${verifierText} ${lvl.is2p ? '(2P)' : ''}</p>
                     </div>
                     <div class="level-points">${points} pts</div>
-                    ${isAdmin ? `<div class="level-actions"><button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">Eliminar</button></div>` : ''}
+                    <div class="level-actions">
+                        ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">Editar</button>` : ''}
+                        ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">Eliminar</button>` : ''}
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -638,9 +848,12 @@
 
             let playerPointsMap = {};
             levels.forEach(lvl => {
+                const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
                 if (lvl.verifier) {
-                    const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
                     playerPointsMap[lvl.verifier] = (playerPointsMap[lvl.verifier] || 0) + pts;
+                }
+                if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
+                    playerPointsMap[lvl.verifier2] = (playerPointsMap[lvl.verifier2] || 0) + pts;
                 }
             });
 
@@ -700,7 +913,11 @@
 
     window.openDetailModal = (lvl, thumbUrl) => {
         document.getElementById('modalLevelTitle').innerText = lvl.name;
-        document.getElementById('modalLevelCreators').innerText = `Por ${lvl.creator} • Verificado por ${lvl.verifier}`;
+        let verifierText = lvl.verifier;
+        if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
+            verifierText += ` & ${lvl.verifier2}`;
+        }
+        document.getElementById('modalLevelCreators').innerText = `Por ${lvl.creator} • Verificado por ${verifierText}`;
         document.getElementById('modalLevelIdText').innerText = `ID: ${lvl.levelId}`;
         document.getElementById('modalYoutubeAnchor').href = lvl.youtubeUrl;
         document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
