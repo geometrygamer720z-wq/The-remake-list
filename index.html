@@ -784,7 +784,7 @@
         }
     }
 
-    // Función para enviar la alerta automática al Webhook de Discord
+    // Webhook de Discord con texto en INGLÉS
     async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, addedByUsername) {
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1571591905416839220/zOa0_eBCVqTjXDIcW1CZKjjRyan_CyWWZrzv9xQmIB83zaqDkcuoam78jnx6h56cULdr";
         
@@ -803,11 +803,11 @@
         }
 
         const payload = {
-            content: `🚨 **¡NUEVO NIVEL AÑADIDO A LA REMAKE LIST!** 🚨`,
+            content: `🚨 **NEW LEVEL ADDED TO THE REMAKE LIST!** 🚨`,
             embeds: [
                 {
                     title: `#${rank} - ${levelName}`,
-                    description: `👤 **Creador:** ${creatorName}\n🆔 **ID de GD:** \`${levelId}\`\n🛡️ **Añadido por (Admin):** ${addedByUsername || 'Administrador'}`,
+                    description: `👤 **Creator:** ${creatorName}\n🆔 **GD ID:** \`${levelId}\`\n🛡️ **Added by (Admin):** ${addedByUsername || 'Administrator'}`,
                     color: 52428,
                     image: {
                         url: imageUrl
@@ -826,7 +826,7 @@
                 body: JSON.stringify(payload)
             });
         } catch (err) {
-            console.error("Error al enviar el webhook a Discord:", err);
+            console.error("Error sending webhook to Discord:", err);
         }
     }
 
@@ -1190,13 +1190,13 @@
             dbData.levels.push(newLevel);
             await saveCloudData();
 
-            // Llamada automática al Webhook de Discord
+            // Notificación en inglés hacia Discord
             const activeAdminUser = localStorage.getItem('gd_active_user') || 'Admin';
             await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, activeAdminUser);
 
             closeAddLevelModal();
             loadDataAndRender();
-            alert(currentLang === 'es' ? "¡Nivel añadido y notificado en Discord!" : "Level added and notified in Discord!");
+            alert("Level added and notified in Discord!");
         };
 
         if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
