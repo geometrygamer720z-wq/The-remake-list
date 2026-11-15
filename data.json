@@ -1,5 +1,17 @@
 {
-  "levels": [],
+  "levels": [
+    {
+      "id": "lvl_1794709179146",
+      "name": "Dual force",
+      "creator": "Samurandomer",
+      "verifier": "Samurandomer",
+      "levelId": "148090632",
+      "rank": 1,
+      "youtubeUrl": "https://youtu.be/oy0VSI8nE9s?si=f5Nfg3hHEDJ0x5qu",
+      "imageSource": "youtube",
+      "logoBase64": ""
+    }
+  ],
   "manualPlayers": [],
-  "discordUrl": ""
+  "discordUrl": "https://discord.gg/5aG7fxea7"
 }
