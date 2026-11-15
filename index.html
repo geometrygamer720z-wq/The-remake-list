@@ -323,8 +323,10 @@
 </div>
 
 <script>
-    // Enlace de Npoint configurado automáticamente
-    const NPOINT_URL = "https://api.npoint.io/2b8825c083943b83a9ff";
+    // Configuración de JSONBin.io con tus credenciales
+    const BIN_ID = "6af91a2effd5d16053c23e4f";
+    const MASTER_KEY = "$2a$10$rEXcAt7DiTo1qjWclq7hoOOYciqND75Ww3q9jhHenELrejQYvPNr6";
+    const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let dbData = {
         levels: [],
@@ -338,13 +340,19 @@
 
     async function fetchCloudData() {
         try {
-            const res = await fetch(NPOINT_URL + "?t=" + Date.now());
+            const res = await fetch(JSONBIN_URL + "/latest", {
+                headers: {
+                    'X-Master-Key': MASTER_KEY
+                }
+            });
             if (res.ok) {
-                const cloudJson = await res.json();
-                if (cloudJson) dbData = cloudJson;
+                const json = await res.json();
+                if (json && json.record) {
+                    dbData = json.record;
+                }
             }
         } catch (err) {
-            console.error("Error al conectar con la nube:", err);
+            console.error("Error al conectar con JSONBin:", err);
         }
         checkLocalStorageSession();
         loadDataAndRender();
@@ -352,13 +360,19 @@
 
     async function saveCloudData() {
         try {
-            await fetch(NPOINT_URL, {
+            const res = await fetch(JSONBIN_URL, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': MASTER_KEY
+                },
                 body: JSON.stringify(dbData)
             });
+            if (!res.ok) {
+                throw new Error("Error en la respuesta del servidor");
+            }
         } catch (err) {
-            console.error("Error al guardar en la nube:", err);
+            console.error("Error al guardar en JSONBin:", err);
             alert("Error al sincronizar con la nube. Revisa tu conexión.");
         }
     }
