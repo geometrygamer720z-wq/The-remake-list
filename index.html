@@ -51,7 +51,7 @@
         .title-row { display: flex; align-items: center; gap: 15px; }
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent); }
 
-        .header-controls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
         .nav-tabs {
             display: flex; background: #111; border-radius: 6px;
@@ -75,6 +75,8 @@
         .discord-bg:hover { background-color: #4752c4; }
         .tiktok-bg { background-color: #000000; border: 1px solid #333; }
         .tiktok-bg:hover { background-color: #111111; }
+        .submit-bg { background-color: #1c1c1c; border: 1px solid #444; }
+        .submit-bg:hover { background-color: #2a2a2a; }
 
         .social-icon { width: 22px; height: 22px; fill: white; }
 
@@ -92,23 +94,52 @@
         .btn-edit { background: linear-gradient(135deg, #f7b733, #f39c12); color: #000; padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; }
         .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; }
 
-        .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+        .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
 
         .admin-action-bar { display: none; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
-        .level-card, .player-card, .person-card {
-            display: flex; align-items: center; background-color: var(--card-bg);
-            margin-bottom: 12px; padding: 12px; border-radius: 10px;
-            border-left: 4px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        /* Estilo Grande para las tarjetas de niveles con fondo difuminado */
+        .level-card {
+            position: relative;
+            display: flex; align-items: center;
+            background-color: var(--card-bg);
+            margin-bottom: 16px; padding: 20px; border-radius: 12px;
+            border-left: 6px solid var(--accent); box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+            overflow: hidden; cursor: pointer; min-height: 110px;
         }
-        .thumbnail { width: 110px; height: 62px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #000; flex-shrink: 0; }
-        .level-info, .player-info, .person-info { flex-grow: 1; }
-        .level-title, .player-name, .person-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
-        .level-creator, .player-details, .person-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
-        .level-points, .player-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
-        .level-actions, .person-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
+        .level-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: var(--card-bg-img);
+            background-size: cover; background-position: center;
+            filter: blur(8px) brightness(0.35);
+            z-index: 1;
+        }
+        .level-card > * {
+            position: relative;
+            z-index: 2;
+        }
+        .thumbnail { width: 140px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 20px; background: #000; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+        .level-info { flex-grow: 1; }
+        .level-title { font-size: 1.5rem; font-weight: bold; margin: 0 0 6px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .level-creator { color: #cccccc; font-size: 1rem; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.3rem; margin-left: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .level-actions { display: flex; gap: 10px; margin-left: 20px; align-items: center; }
 
-        .player-avatar, .person-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
+        .player-card, .person-card {
+            display: flex; align-items: center; background-color: var(--card-bg);
+            margin-bottom: 12px; padding: 14px; border-radius: 10px;
+            border-left: 4px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            cursor: pointer; transition: background 0.2s;
+        }
+        .player-card:hover, .person-card:hover { background-color: #1c1c1c; }
+        
+        .player-info, .person-info { flex-grow: 1; }
+        .player-name, .person-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
+        .player-details, .person-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+        .player-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
+
+        .player-avatar, .person-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
         .player-rank { font-size: 1.2rem; font-weight: bold; color: var(--accent); width: 35px; text-align: center; margin-right: 10px; }
 
         .modal {
@@ -117,7 +148,7 @@
         }
         .modal-content {
             background: #141414; border: 1px solid #333; padding: 25px; border-radius: 14px;
-            max-width: 450px; width: 90%; position: relative; max-height: 90vh; overflow-y: auto;
+            max-width: 480px; width: 90%; position: relative; max-height: 90vh; overflow-y: auto;
         }
 
         .close-btn { position: absolute; top: 12px; right: 18px; font-size: 1.4rem; cursor: pointer; color: var(--text-muted); }
@@ -161,6 +192,13 @@
             <button class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
 
+        <!-- Botón de Envío Superior Derecho con el ícono subido -->
+        <button class="social-btn submit-bg" id="submitInfoBtn" onclick="openSubmitInfoModal()" title="Submit Info / Info de Envíos">
+            <svg class="social-icon" viewBox="0 0 24 24">
+                <path d="M12 2L5 9h4v8h6V9h4L12 2zm-7 19v-2h14v2H5z" fill="currentColor"/>
+            </svg>
+        </button>
+
         <button class="social-btn discord-bg" id="discordHeaderBtn" onclick="handleDiscordClick()" title="Discord">
             <svg class="social-icon" viewBox="0 0 24 24">
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
@@ -199,6 +237,18 @@
 </div>
 
 <datalist id="accountsDatalist"></datalist>
+
+<!-- Modal de Información de Envíos (Discord) -->
+<div id="submitInfoModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close-btn" onclick="closeSubmitInfoModal()">&times;</span>
+        <h3 style="color:var(--accent); margin-top:0;" id="m-sub-title">Submission Info</h3>
+        <p id="m-sub-text" style="color: #ccc; font-size: 1rem; line-height: 1.5; margin: 20px 0;">
+            Hello, to add levels or be a victor of a level you have to send it in Discord, thanks!
+        </p>
+        <button class="btn" onclick="closeSubmitInfoModal()" style="width: 100%; padding: 10px;" id="m-sub-close">Understood</button>
+    </div>
+</div>
 
 <div id="discordModal" class="modal">
     <div class="modal-content">
@@ -337,6 +387,8 @@
             <input type="text" id="authName" required placeholder="Enter">
             <label id="m-auth-pass">Password:</label>
             <input type="password" id="authPass" required placeholder="••••••••">
+            <label id="m-auth-tiktok">TikTok Profile URL (optional):</label>
+            <input type="url" id="authTiktok" placeholder="https://tiktok.com/@username">
             <label id="m-auth-img">Upload Profile Image:</label>
             <input type="file" id="authImgFile" accept="image/*" required style="color: var(--text-muted); margin-bottom: 15px;">
             <button type="submit" class="btn" id="m-auth-submit" style="width:100%; padding: 12px;">Continue</button>
@@ -353,11 +405,37 @@
             <input type="text" id="profileName" required>
             <label id="m-prof-pass">New Password (optional):</label>
             <input type="password" id="profilePass" placeholder="Leave blank to keep">
+            <label id="m-prof-tiktok">TikTok Profile URL:</label>
+            <input type="url" id="profileTiktok" placeholder="https://tiktok.com/@username">
             <label id="m-prof-img">Change Profile Image:</label>
             <input type="file" id="profileImgFile" accept="image/*" style="color: var(--text-muted); margin-bottom: 15px;">
             <button type="submit" class="btn" id="m-prof-update" style="width:100%; margin-bottom:10px; padding: 12px;">Update Profile</button>
             <button type="button" class="btn btn-danger" id="m-prof-delete" onclick="deleteAccount()" style="width:100%; padding: 12px;">Delete Account</button>
         </form>
+    </div>
+</div>
+
+<!-- Modal de Detalle de Usuario (Players / Persons) -->
+<div id="userDetailModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close-btn" onclick="closeUserDetailModal()">&times;</span>
+        <img id="userModalAvatar" src="" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; background: #333;" onerror="this.src='https://via.placeholder.com/70'">
+        <h3 id="userModalName" style="color:var(--accent); margin: 0 0 5px 0;"></h3>
+        <p id="userModalRole" style="color:var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;"></p>
+        
+        <div id="userModalTiktokContainer" style="margin-bottom: 15px; display: none;">
+            <a id="userModalTiktokAnchor" href="#" target="_blank" class="btn" style="background: #000; border: 1px solid #444; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; text-decoration: none; padding: 8px 16px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
+                <span id="m-user-tiktok-text">Visit TikTok Profile</span>
+            </a>
+        </div>
+
+        <div id="userModalLevelsSection" class="victors-section" style="display: none;">
+            <div class="victors-header">
+                <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);" id="m-user-levels-title">Completed Levels</span>
+            </div>
+            <div id="userModalLevelsList" class="victors-list"></div>
+        </div>
     </div>
 </div>
 
@@ -390,7 +468,6 @@
     </div>
 </div>
 
-<!-- Modal para añadir Victor -->
 <div id="addVictorModal" class="modal" style="z-index: 1050;">
     <div class="modal-content" style="max-width: 350px;">
         <span class="close-btn" onclick="closeAddVictorModal()">&times;</span>
@@ -443,6 +520,12 @@
             victorsTitle: "Victors",
             addVictorBtn: "+ Add Victor",
             mAddVicTitle: "Add Victor to Level",
+            mSubTitle: "Submission Info",
+            mSubText: "Hello, to add levels or be a victor of a level you have to send it in Discord, thanks!",
+            mSubClose: "Understood",
+            mUserTiktok: "Visit TikTok Profile",
+            mUserNoLevels: "No completed levels in the list yet.",
+            mUserLevelsTitle: "Completed Levels",
             mDiscTitle: "Configure Discord Invite",
             mDiscLabel: "Discord Server URL:",
             mDiscSave: "Save & Upload to Cloud",
@@ -477,10 +560,12 @@
             mAuthTitle: "Sign In / Register",
             mAuthUser: "Your GD Username:",
             mAuthPass: "Password:",
+            mAuthTiktok: "TikTok Profile URL (optional):",
             mAuthImg: "Upload Profile Image:",
             mAuthContinue: "Continue",
             mProfTitle: "Edit Profile",
             mProfNewPass: "New Password (optional):",
+            mProfTiktok: "TikTok Profile URL:",
             mProfChangeImg: "Change Profile Image:",
             mProfUpdate: "Update Profile",
             mProfDelete: "Delete Account"
@@ -509,6 +594,12 @@
             victorsTitle: "Víctors",
             addVictorBtn: "+ Añadir Victor",
             mAddVicTitle: "Añadir Victor al Nivel",
+            mSubTitle: "Información de Envíos",
+            mSubText: "¡Hola! Para añadir niveles o ser un victor de un nivel tienes que enviarlo en Discord, ¡gracias!",
+            mSubClose: "Entendido",
+            mUserTiktok: "Visitar Perfil de TikTok",
+            mUserNoLevels: "No tiene niveles completados de la lista.",
+            mUserLevelsTitle: "Niveles Completados",
             mDiscTitle: "Configurar Enlace de Discord",
             mDiscLabel: "URL del servidor de Discord:",
             mDiscSave: "Guardar y Subir a la Nube",
@@ -543,10 +634,12 @@
             mAuthTitle: "Iniciar Sesión / Registrarse",
             mAuthUser: "Tu Nombre de Usuario en GD:",
             mAuthPass: "Contraseña:",
+            mAuthTiktok: "URL de TikTok (opcional):",
             mAuthImg: "Sube tu imagen de perfil:",
             mAuthContinue: "Continuar",
             mProfTitle: "Editar Perfil",
             mProfNewPass: "Nueva Contraseña (opcional):",
+            mProfTiktok: "URL de TikTok:",
             mProfChangeImg: "Cambiar imagen de perfil:",
             mProfUpdate: "Actualizar Perfil",
             mProfDelete: "Eliminar Cuenta"
@@ -574,6 +667,12 @@
         document.getElementById('tabPlayersBtn').innerText = t.tabPlayers;
         document.getElementById('tabPersonsBtn').innerText = t.tabPersons;
         document.getElementById('addLevelBtnText').innerText = t.addLevel;
+
+        document.getElementById('m-sub-title').innerText = t.mSubTitle;
+        document.getElementById('m-sub-text').innerText = t.mSubText;
+        document.getElementById('m-sub-close').innerText = t.mSubClose;
+        document.getElementById('m-user-tiktok-text').innerText = t.mUserTiktok;
+        document.getElementById('m-user-levels-title').innerText = t.mUserLevelsTitle;
 
         document.getElementById('m-disc-title').innerText = t.mDiscTitle;
         document.getElementById('m-disc-label').innerText = t.mDiscLabel;
@@ -632,12 +731,14 @@
         document.getElementById('m-auth-title').innerText = t.mAuthTitle;
         document.getElementById('m-auth-user').innerText = t.mAuthUser;
         document.getElementById('m-auth-pass').innerText = t.mAuthPass;
+        document.getElementById('m-auth-tiktok').innerText = t.mAuthTiktok;
         document.getElementById('m-auth-img').innerText = t.mAuthImg;
         document.getElementById('m-auth-submit').innerText = t.mAuthContinue;
 
         document.getElementById('m-prof-title').innerText = t.mProfTitle;
         document.getElementById('m-prof-user').innerText = t.mAuthUser;
         document.getElementById('m-prof-pass').innerText = t.mProfNewPass;
+        document.getElementById('m-prof-tiktok').innerText = t.mProfTiktok;
         document.getElementById('m-prof-img').innerText = t.mProfChangeImg;
         document.getElementById('m-prof-update').innerText = t.mProfUpdate;
         document.getElementById('m-prof-delete').innerText = t.mProfDelete;
@@ -762,6 +863,9 @@
         }
     }
 
+    window.openSubmitInfoModal = () => { document.getElementById('submitInfoModal').style.display = 'flex'; };
+    window.closeSubmitInfoModal = () => { document.getElementById('submitInfoModal').style.display = 'none'; };
+
     window.handleDiscordClick = () => {
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
         if (isAdmin) {
@@ -836,6 +940,7 @@
         e.preventDefault();
         const name = document.getElementById('authName').value.trim();
         const pass = document.getElementById('authPass').value;
+        const tiktokUrl = document.getElementById('authTiktok').value.trim();
         const fileInput = document.getElementById('authImgFile');
 
         if (!dbData.accounts) dbData.accounts = {};
@@ -847,12 +952,15 @@
                     if (imgBase64) {
                         dbData.accounts[name].imageBase64 = imgBase64;
                     }
+                    if (tiktokUrl) {
+                        dbData.accounts[name].tiktokUrl = tiktokUrl;
+                    }
                 } else {
                     alert(currentLang === 'es' ? "Contraseña incorrecta." : "Incorrect password.");
                     return;
                 }
             } else {
-                dbData.accounts[name] = { name, pass, imageBase64: imgBase64 };
+                dbData.accounts[name] = { name, pass, tiktokUrl: tiktokUrl, imageBase64: imgBase64 };
                 localStorage.setItem('gd_active_user', name);
             }
             await saveCloudData();
@@ -880,6 +988,7 @@
         if (activeUser && dbData.accounts[activeUser]) {
             document.getElementById('profileName').value = dbData.accounts[activeUser].name;
             document.getElementById('profilePass').value = "";
+            document.getElementById('profileTiktok').value = dbData.accounts[activeUser].tiktokUrl || "";
         }
         document.getElementById('profileModal').style.display = 'flex';
     };
@@ -891,11 +1000,13 @@
         if (!activeUser || !dbData.accounts[activeUser]) return;
 
         const newPass = document.getElementById('profilePass').value;
+        const newTiktok = document.getElementById('profileTiktok').value.trim();
         const fileInput = document.getElementById('profileImgFile');
 
         if (newPass) {
             dbData.accounts[activeUser].pass = newPass;
         }
+        dbData.accounts[activeUser].tiktokUrl = newTiktok;
 
         const updateDataWithImg = async (imgBase64) => {
             if (imgBase64) {
@@ -1147,6 +1258,7 @@
 
                 const card = document.createElement('div');
                 card.className = 'level-card';
+                card.style.setProperty('--card-bg-img', `url('${thumbUrl || ''}')`);
                 card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openDetailModal(lvl, thumbUrl); };
 
                 card.innerHTML = `
@@ -1180,14 +1292,14 @@
                 }
                 if (lvl.victors && Array.isArray(lvl.victors)) {
                     lvl.victors.forEach(victor => {
-                        playerPointsMap[victor] = (playerPointsMap[victor] || 0) + Math.round(pts * 0.5); // Victor points bonus
+                        playerPointsMap[victor] = (playerPointsMap[victor] || 0) + Math.round(pts * 0.5);
                     });
                 }
             });
 
             let playersArr = Object.keys(playerPointsMap).map(name => {
-                let img = (dbData.accounts && dbData.accounts[name]) ? dbData.accounts[name].imageBase64 : '';
-                return { name, points: playerPointsMap[name], imageBase64: img };
+                let acc = (dbData.accounts && dbData.accounts[name]) ? dbData.accounts[name] : {};
+                return { name, points: playerPointsMap[name], imageBase64: acc.imageBase64 || '', tiktokUrl: acc.tiktokUrl || '' };
             });
 
             playersArr.sort((a, b) => b.points - a.points);
@@ -1200,9 +1312,10 @@
             playersArr.forEach((player, index) => {
                 const card = document.createElement('div');
                 card.className = 'player-card';
+                card.onclick = () => openUserDetailModal(player, true);
                 card.innerHTML = `
                     <div class="player-rank">#${index + 1}</div>
-                    <img src="${player.imageBase64 || 'https://via.placeholder.com/45'}" class="player-avatar" onerror="this.src='https://via.placeholder.com/45'">
+                    <img src="${player.imageBase64 || 'https://via.placeholder.com/50'}" class="player-avatar" onerror="this.src='https://via.placeholder.com/50'">
                     <div class="player-info">
                         <h3 class="player-name">${player.name}</h3>
                         <p class="player-details">${t.verifRole}</p>
@@ -1226,8 +1339,9 @@
             accountsArr.forEach(person => {
                 const card = document.createElement('div');
                 card.className = 'person-card';
+                card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openUserDetailModal(person, false); };
                 card.innerHTML = `
-                    <img src="${person.imageBase64 || 'https://via.placeholder.com/45'}" class="person-avatar" onerror="this.src='https://via.placeholder.com/45'">
+                    <img src="${person.imageBase64 || 'https://via.placeholder.com/50'}" class="person-avatar" onerror="this.src='https://via.placeholder.com/50'">
                     <div class="person-info">
                         <h3 class="person-name">${person.name}</h3>
                         <p class="person-details">${t.activeCloudAccount}</p>
@@ -1238,6 +1352,54 @@
             });
         }
     }
+
+    window.openUserDetailModal = (userObj, showCompletedLevels) => {
+        document.getElementById('userModalAvatar').src = userObj.imageBase64 || 'https://via.placeholder.com/70';
+        document.getElementById('userModalName').innerText = userObj.name;
+        document.getElementById('userModalRole').innerText = showCompletedLevels ? translations[currentLang].verifRole : translations[currentLang].activeCloudAccount;
+
+        const tiktokContainer = document.getElementById('userModalTiktokContainer');
+        const tiktokAnchor = document.getElementById('userModalTiktokAnchor');
+        if (userObj.tiktokUrl && userObj.tiktokUrl.trim() !== '') {
+            tiktokAnchor.href = userObj.tiktokUrl;
+            tiktokContainer.style.display = 'block';
+        } else {
+            tiktokContainer.style.display = 'none';
+        }
+
+        const levelsSection = document.getElementById('userModalLevelsSection');
+        const levelsList = document.getElementById('userModalLevelsList');
+        levelsList.innerHTML = "";
+
+        if (showCompletedLevels) {
+            levelsSection.style.display = 'block';
+            let completed = [];
+            (dbData.levels || []).forEach(lvl => {
+                let isVerifier = (lvl.verifier === userObj.name || (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2 === userObj.name));
+                let isVictor = (lvl.victors && lvl.victors.includes(userObj.name));
+                if (isVerifier || isVictor) {
+                    completed.push(lvl);
+                }
+            });
+
+            if (completed.length === 0) {
+                levelsList.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">${translations[currentLang].mUserNoLevels}</span>`;
+            } else {
+                completed.forEach(lvl => {
+                    const badge = document.createElement('div');
+                    badge.className = 'victor-badge';
+                    badge.innerHTML = `<span>#${lvl.rank} - ${lvl.name}</span>`;
+                    levelsList.appendChild(badge);
+                });
+            }
+        } else {
+            levelsSection.style.display = 'none';
+        }
+
+        document.getElementById('userDetailModal').style.display = 'flex';
+    };
+
+    window.closeUserDetailModal = () => { document.getElementById('userDetailModal').style.display = 'none'; };
 
     window.openDetailModal = (lvl, thumbUrl) => {
         currentSelectedLevelId = lvl.id;
@@ -1271,8 +1433,7 @@
 
         lvl.victors.forEach(victorName => {
             const badge = document.createElement('div');
-            badge.className = 'visitor-badge';
-            badge.style.cssText = "background: #222; border: 1px solid #444; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;";
+            badge.className = 'victor-badge';
             badge.innerHTML = `
                 <span>${victorName}</span>
                 ${isAdmin ? `<span class="victor-del" onclick="removeVictor('${lvl.id}', '${victorName}')" title="Delete">×</span>` : ''}
