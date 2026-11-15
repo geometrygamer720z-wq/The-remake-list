@@ -80,7 +80,6 @@
 
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent); }
 
-        /* Etiqueta de actualización del index.html */
         .update-badge {
             background: linear-gradient(135deg, #00ffcc, #00d2ff);
             color: #000;
@@ -95,7 +94,6 @@
             width: fit-content;
         }
 
-        /* Etiqueta de nivel(es) añadido(s) debajo */
         .level-added-badge {
             background: linear-gradient(135deg, #f7b733, #fc4a1a);
             color: #000;
@@ -116,7 +114,32 @@
             gap: 15px;
         }
 
-        /* Logo de Discord circular en la esquina superior derecha */
+        /* Pestañas de navegación (Demon List / Jugadores) */
+        .nav-tabs {
+            display: flex;
+            background: #111;
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .nav-tab-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .nav-tab-btn.active {
+            background: var(--accent);
+            color: #000;
+        }
+
         .discord-btn {
             width: 40px;
             height: 40px;
@@ -142,7 +165,6 @@
             fill: white;
         }
 
-        /* Botones de Idioma */
         .lang-group {
             display: flex;
             background: #111;
@@ -180,12 +202,23 @@
         .btn:hover { opacity: 0.85; }
         .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
         .btn-edit { background: linear-gradient(135deg, #f7b733, #f39c12); color: #000; padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; }
-        .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; cursor: pointer; }
+        .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; }
         .btn-copy:hover { background: var(--accent); color: #000; }
 
         .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
 
-        /* Botón Flotante "+" para Admin */
+        /* Panel de Alertas Exclusivo para el Admin */
+        .admin-alert-box {
+            background: rgba(255, 65, 108, 0.15);
+            border: 1px solid #ff416c;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .admin-alert-box h4 { margin: 0 0 8px 0; color: #ff416c; font-size: 1rem; }
+        .admin-alert-box ul { margin: 0; padding-left: 20px; font-size: 0.9rem; color: #ff99a8; }
+
         .fab-btn {
             position: fixed;
             bottom: 30px;
@@ -207,8 +240,7 @@
         }
         .fab-btn:hover { transform: scale(1.1); }
 
-        /* Tarjetas de Niveles */
-        .level-card {
+        .level-card, .player-card {
             display: flex;
             align-items: center;
             background-color: var(--card-bg);
@@ -220,13 +252,16 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        .level-card:hover { transform: scale(1.01); }
+        .level-card:hover, .player-card:hover { transform: scale(1.01); }
         .thumbnail { width: 110px; height: 62px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #000; flex-shrink: 0; }
-        .level-info { flex-grow: 1; }
-        .level-title { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
-        .level-creator { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
-        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
+        .level-info, .player-info { flex-grow: 1; }
+        .level-title, .player-name { font-size: 1.2rem; font-weight: bold; margin: 0 0 4px 0; }
+        .level-creator, .player-details { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+        .level-points, .player-points { font-weight: bold; color: #00ffcc; font-size: 1.1rem; margin-left: 15px; }
         .level-actions { display: flex; gap: 8px; margin-left: 15px; align-items: center; }
+
+        .player-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #333; }
+        .player-rank { font-size: 1.2rem; font-weight: bold; color: var(--accent); width: 35px; text-align: center; margin-right: 10px; }
 
         .modal {
             display: none;
@@ -265,11 +300,64 @@
             margin-bottom: 15px;
             border: 1px solid #333;
         }
+
+        /* Estilo para la miniatura interactiva de YouTube en el Modal de Detalles */
+        .modal-yt-container {
+            position: relative;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 2px solid #333;
+            transition: border-color 0.2s;
+        }
+        .modal-yt-container:hover {
+            border-color: var(--accent);
+        }
+        .modal-yt-thumb {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        .modal-yt-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .modal-yt-container:hover .modal-yt-overlay {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .play-icon-circle {
+            width: 60px;
+            height: 60px;
+            background: #ff0000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+            transition: transform 0.2s;
+        }
+        .modal-yt-container:hover .play-icon-circle {
+            transform: scale(1.1);
+        }
+        .play-triangle {
+            width: 0; height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 20px solid #fff;
+            margin-left: 4px;
+        }
     </style>
 </head>
 <body>
 
-<!-- Fondo de partículas flotantes (estilo GD) -->
 <div class="gd-particles" id="particleContainer"></div>
 
 <header>
@@ -277,20 +365,22 @@
         <div class="title-row">
             <h1 id="t-title">LA REMAKE LIST</h1>
         </div>
-        <!-- 1. Etiqueta para actualización del index.html -->
         <div id="updateBadge" class="update-badge">Página actualizada recientemente</div>
-        <!-- 2. Etiqueta dinámica para niveles añadidos -->
         <div id="levelAddedBadge" class="level-added-badge">Nivel añadido</div>
     </div>
     <div class="header-controls">
-        <!-- Logo de Discord Circular en la barra superior -->
+        <!-- Pestañas de navegación -->
+        <div class="nav-tabs">
+            <button class="nav-tab-btn active" id="tabListBtn" onclick="switchTab('list')">List</button>
+            <button class="nav-tab-btn" id="tabPlayersBtn" onclick="switchTab('players')">Players</button>
+        </div>
+
         <button class="discord-btn" id="discordHeaderBtn" onclick="handleDiscordClick()" title="Discord">
             <svg class="discord-icon" viewBox="0 0 24 24">
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
         </button>
 
-        <!-- Botones de Idioma -->
         <div class="lang-group">
             <button class="lang-btn active" onclick="setLanguage('es', this)">ES</button>
             <button class="lang-btn" onclick="setLanguage('en', this)">US</button>
@@ -303,14 +393,25 @@
 </header>
 
 <div class="container">
-    <!-- Lista principal de niveles -->
-    <div id="demonList"></div>
+    <!-- Panel de Alertas Exclusivo para el Admin -->
+    <div id="adminAlertBox" class="admin-alert-box">
+        <h4>⚠️ Alerta de Administrador (Verificadores sin cuenta):</h4>
+        <ul id="adminAlertList"></ul>
+    </div>
+
+    <!-- Vista de la Demon List -->
+    <div id="listViewContainer">
+        <div id="demonList"></div>
+    </div>
+
+    <!-- Vista de la Categoría de Jugadores (Leaderboard) -->
+    <div id="playersViewContainer" style="display: none;">
+        <div id="playersList"></div>
+    </div>
 </div>
 
-<!-- Botón Flotante "+" (Solo visible para la cuenta Admin) -->
 <button class="fab-btn" id="fabAddBtn" onclick="openAddLevelModal()" style="display: none;">+</button>
 
-<!-- Modal para Configurar la URL de Discord -->
 <div id="discordModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeDiscordModal()">&times;</span>
@@ -323,7 +424,6 @@
     </div>
 </div>
 
-<!-- Modal Añadir Nivel -->
 <div id="addLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAddLevelModal()">&times;</span>
@@ -331,12 +431,11 @@
         <form id="levelForm" onsubmit="handleAddNewLevel(event)">
             <input type="text" id="lvlName" placeholder="Nombre del nivel" required>
             <input type="text" id="lvlCreator" placeholder="Creador" required>
-            <input type="text" id="lvlVerifier" placeholder="Verificador" required>
+            <input type="text" id="lvlVerifier" placeholder="Verificador (Debe coincidir con el usuario registrado)" required>
             <input type="text" id="lvlId" placeholder="ID del nivel de Geometry Dash" required>
             <input type="number" id="lvlRank" placeholder="Puesto en el Top (Ej: 1)" required>
             <input type="url" id="lvlYoutube" placeholder="URL del video de YouTube" required>
 
-            <!-- Categoría de Imágenes Exclusiva -->
             <div class="image-source-selector">
                 <label id="t-imgsource" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Categoría de Imágenes:</label>
                 <select id="imageSourceType" onchange="toggleImageSourceInputs()" style="margin-bottom:10px;">
@@ -355,7 +454,6 @@
     </div>
 </div>
 
-<!-- Modal Principal de Autenticación / Registro / Inicio de Sesión -->
 <div id="authModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeAuthModal()">&times;</span>
@@ -377,7 +475,6 @@
     </div>
 </div>
 
-<!-- Modal para Editar / Gestionar Perfil Activo -->
 <div id="profileModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeProfileModal()">&times;</span>
@@ -398,7 +495,6 @@
     </div>
 </div>
 
-<!-- Modal para Editar Nivel (Admin) -->
 <div id="editLevelModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeEditModal()">&times;</span>
@@ -416,7 +512,7 @@
                 <label id="t-editimgsource" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Categoría de Imágenes:</label>
                 <select id="editImageSourceType" onchange="toggleEditImageSourceInputs()" style="margin-bottom:10px;">
                     <option value="youtube" id="t-editoptyt">Usar miniatura de YouTube</option>
-                    <option value="custom" id="t-editoptcustom">Subir imagen personalizada</option>
+                    <option value="custom" id="t-optcustom">Subir imagen personalizada</option>
                 </select>
 
                 <div id="editCustomImageContainer" style="display:none;">
@@ -430,24 +526,34 @@
     </div>
 </div>
 
-<!-- Modal para Ver Detalles / ID / Copiar ID -->
+<!-- Modal de Detalles Actualizado con Miniatura Interactiva de YouTube -->
 <div id="levelDetailModal" class="modal">
     <div class="modal-content" style="text-align: center;">
         <span class="close-btn" onclick="closeDetailModal()">&times;</span>
         <h3 id="modalLevelTitle" style="color:var(--accent); margin-top:0;"></h3>
-        <p id="modalLevelCreators" style="color:var(--text-muted); font-size: 0.9rem;"></p>
+        <p id="modalLevelCreators" style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;"></p>
         
-        <div style="background:#1c1c1c; padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+        <!-- Miniatura de YouTube Interactiva -->
+        <a id="modalYoutubeAnchor" href="#" target="_blank" style="text-decoration: none;">
+            <div class="modal-yt-container">
+                <img id="modalYoutubeThumbImg" src="" class="modal-yt-thumb" alt="YouTube Thumbnail">
+                <div class="modal-yt-overlay">
+                    <div class="play-icon-circle">
+                        <div class="play-triangle"></div>
+                    </div>
+                    <span style="color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem;" id="t-watchyt">Ver video en YouTube</span>
+                </div>
+            </div>
+        </a>
+
+        <div style="background:#1c1c1c; padding: 12px 15px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-weight: bold;" id="modalLevelIdText">ID: </span>
             <button class="btn-copy" id="t-copybtn" onclick="copyLevelId()">Copiar ID</button>
         </div>
-
-        <a id="modalYoutubeLink" href="#" target="_blank" class="btn" style="display: block; text-decoration: none; text-align: center; padding: 12px;" id="t-watchyt">Ver video en YouTube</a>
     </div>
 </div>
 
 <script>
-    // ⚙️ CAMBIA ESTA FECHA CADA VEZ QUE MODIFIQUES EL CÓDIGO DE INDEX.HTML ⚙️
     const INDEX_LAST_MODIFIED = "2026-06-07 00:00"; 
 
     const translations = {
@@ -568,6 +674,7 @@
     };
 
     let currentLang = 'es';
+    let currentActiveTab = 'list';
 
     window.setLanguage = (lang, btnElement) => {
         currentLang = lang;
@@ -610,10 +717,18 @@
         if (logoutBtnEl) logoutBtnEl.innerText = translations[lang].logout;
 
         updateLevelBadgeText();
-        loadLevels();
+        loadDataAndRender();
     };
 
-    // Partículas de fondo
+    window.switchTab = (tab) => {
+        currentActiveTab = tab;
+        document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
+        document.getElementById('tabPlayersBtn').classList.toggle('active', tab === 'players');
+        document.getElementById('listViewContainer').style.display = tab === 'list' ? 'block' : 'none';
+        document.getElementById('playersViewContainer').style.display = tab === 'players' ? 'block' : 'none';
+        loadDataAndRender();
+    };
+
     const particleContainer = document.getElementById('particleContainer');
     for (let i = 0; i < 22; i++) {
         const p = document.createElement('div');
@@ -627,7 +742,6 @@
         particleContainer.appendChild(p);
     }
 
-    // 1. Control de actualización del archivo index.html
     function checkIndexUpdateStatus() {
         const badge = document.getElementById('updateBadge');
         const updateTime = new Date(INDEX_LAST_MODIFIED).getTime();
@@ -641,14 +755,12 @@
         }
     }
 
-    // 2. Control de niveles añadidos
     function checkLevelAddedStatus() {
         const badge = document.getElementById('levelAddedBadge');
         let addedHistory = JSON.parse(localStorage.getItem('gd_levels_added_history') || '[]');
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
 
-        // Filtrar solo los niveles añadidos hace menos de 24 horas
         addedHistory = addedHistory.filter(timestamp => (now - timestamp) < oneDay);
         localStorage.setItem('gd_levels_added_history', JSON.stringify(addedHistory));
 
@@ -679,12 +791,11 @@
         checkLevelAddedStatus();
     }
 
-    // Si se borra un nivel, eliminamos el registro más antiguo del historial de adición para que baje el conteo o desaparezca
     function removeLatestLevelAdditionRecord() {
         let addedHistory = JSON.parse(localStorage.getItem('gd_levels_added_history') || '[]');
         if (addedHistory.length > 0) {
-            addedHistory.sort((a, b) => b - a); // Ordenar del más reciente al más antiguo
-            addedHistory.shift(); // Eliminar el más reciente para reducir el contador de niveles añadidos
+            addedHistory.sort((a, b) => b - a);
+            addedHistory.shift();
             localStorage.setItem('gd_levels_added_history', JSON.stringify(addedHistory));
         }
         checkLevelAddedStatus();
@@ -776,7 +887,7 @@
             authContainer.innerHTML = `<button class="btn" id="loginBtn" onclick="openAuthModal()">${translations[currentLang].login}</button>`;
             fabAddBtn.style.display = 'none';
         }
-        loadLevels();
+        loadDataAndRender();
     }
 
     window.openAuthModal = () => {
@@ -980,7 +1091,7 @@
         recordLevelAddition(); 
         closeAddLevelModal();
         document.getElementById('levelForm').reset();
-        loadLevels();
+        loadDataAndRender();
         alert("¡Nivel añadido con éxito a la web!");
     }
 
@@ -1055,69 +1166,148 @@
         levels[index] = updatedLevel;
         localStorage.setItem('gd_custom_levels', JSON.stringify(levels));
         closeEditModal();
-        loadLevels();
+        loadDataAndRender();
         alert("¡Nivel actualizado con éxito!");
     }
 
-    function loadLevels() {
-        const listContainer = document.getElementById('demonList');
+    // Función unificada que procesa niveles, valida cuentas y renderiza según la pestaña activa
+    function loadDataAndRender() {
         const activeUser = localStorage.getItem('gd_active_user');
         const adminAccount = localStorage.getItem('gd_admin_account');
         const isAdmin = (adminAccount === activeUser);
+        const allAccounts = JSON.parse(localStorage.getItem('gd_accounts') || '{}');
 
         let levels = JSON.parse(localStorage.getItem('gd_custom_levels') || '[]');
         levels.sort((a, b) => a.rank - b.rank);
 
-        listContainer.innerHTML = "";
-        if (levels.length === 0) {
-            listContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay niveles añadidos todavía.</p>";
-            return;
-        }
+        // Procesar puntajes y verificar cuentas registradas
+        let playersMap = {};
+        let missingAccountsAlerts = [];
 
         levels.forEach((lvl) => {
             const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
-            
-            const ytId = extractYouTubeId(lvl.youtubeUrl);
-            const ytThumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
-            const thumbUrl = (lvl.imageSource === 'custom' && lvl.logoBase64) ? lvl.logoBase64 : ytThumb;
-            
-            const tr = translations[currentLang];
+            const verifierName = lvl.verifier ? lvl.verifier.trim() : '';
 
-            const card = document.createElement('div');
-            card.className = 'level-card';
-            card.onclick = (e) => {
-                if (e.target.tagName === 'BUTTON') return;
-                openDetailModal(lvl.name, lvl.creator, lvl.verifier, lvl.levelId, lvl.youtubeUrl);
-            };
+            // Buscar si el verificador existe en las cuentas registradas (ignorando mayúsculas/minúsculas)
+            const matchedKey = Object.keys(allAccounts).find(
+                acc => acc.toLowerCase() === verifierName.toLowerCase()
+            );
 
-            let adminButtonsHtml = '';
-            if (isAdmin) {
-                adminButtonsHtml = `
-                    <div class="level-actions">
-                        <button type="button" class="btn btn-edit" onclick="openEditModal('${lvl.id}', '${encodeURIComponent(lvl.name || '')}', '${encodeURIComponent(lvl.creator || '')}', '${encodeURIComponent(lvl.verifier || '')}', '${lvl.levelId || ''}', '${encodeURIComponent(lvl.youtubeUrl || '')}', ${lvl.rank || 1}, '${lvl.imageSource || 'youtube'}')">${tr.editbtntext}</button>
-                        <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; font-weight:bold;" onclick="deleteLevel('${lvl.id}')">${tr.deletebtntext}</button>
-                    </div>
-                `;
+            if (matchedKey) {
+                const registeredAcc = allAccounts[matchedKey];
+                if (!playersMap[matchedKey]) {
+                    playersMap[matchedKey] = {
+                        name: registeredAcc.name,
+                        imageBase64: registeredAcc.imageBase64 || '',
+                        points: 0,
+                        verifiedLevelsCount: 0
+                    };
+                }
+                playersMap[matchedKey].points += points;
+                playersMap[matchedKey].verifiedLevelsCount += 1;
+            } else if (verifierName) {
+                // Alerta si el verificador no tiene cuenta registrada
+                missingAccountsAlerts.push(`El nivel "${lvl.name}" (Top #${lvl.rank}) tiene como verificador a "${verifierName}", el cual no está registrado.`);
+            }
+        });
+
+        // Mostrar panel de alerta solo al administrador
+        const adminAlertBox = document.getElementById('adminAlertBox');
+        const adminAlertList = document.getElementById('adminAlertList');
+        if (isAdmin && missingAccountsAlerts.length > 0) {
+            adminAlertBox.style.display = 'block';
+            adminAlertList.innerHTML = missingAccountsAlerts.map(msg => `<li>${msg}</li>`).join('');
+        } else {
+            adminAlertBox.style.display = 'none';
+        }
+
+        // Renderizar la pestaña de la Demon List
+        if (currentActiveTab === 'list') {
+            const listContainer = document.getElementById('demonList');
+            listContainer.innerHTML = "";
+            if (levels.length === 0) {
+                listContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay niveles añadidos todavía.</p>";
+                return;
             }
 
-            card.innerHTML = `
-                ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
-                <div class="level-info">
-                    <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                    <p class="level-creator">${tr.by} ${lvl.creator} • ${tr.verifiedBy} ${lvl.verifier}</p>
-                </div>
-                <div class="level-points">${points} pts</div>
-                ${adminButtonsHtml}
-            `;
-            listContainer.appendChild(card);
-        });
+            levels.forEach((lvl) => {
+                const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
+                const ytId = extractYouTubeId(lvl.youtubeUrl);
+                const ytThumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
+                const thumbUrl = (lvl.imageSource === 'custom' && lvl.logoBase64) ? lvl.logoBase64 : ytThumb;
+                const tr = translations[currentLang];
+
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                card.onclick = (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                    openDetailModal(lvl.name, lvl.creator, lvl.verifier, lvl.levelId, lvl.youtubeUrl, thumbUrl);
+                };
+
+                let adminButtonsHtml = '';
+                if (isAdmin) {
+                    adminButtonsHtml = `
+                        <div class="level-actions">
+                            <button type="button" class="btn btn-edit" onclick="openEditModal('${lvl.id}', '${encodeURIComponent(lvl.name || '')}', '${encodeURIComponent(lvl.creator || '')}', '${encodeURIComponent(lvl.verifier || '')}', '${lvl.levelId || ''}', '${encodeURIComponent(lvl.youtubeUrl || '')}', ${lvl.rank || 1}, '${lvl.imageSource || 'youtube'}')">${tr.editbtntext}</button>
+                            <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; font-weight:bold;" onclick="deleteLevel('${lvl.id}')">${tr.deletebtntext}</button>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
+                    <div class="level-info">
+                        <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
+                        <p class="level-creator">${tr.by} ${lvl.creator} • ${tr.verifiedBy} ${lvl.verifier}</p>
+                    </div>
+                    <div class="level-points">${points} pts</div>
+                    ${adminButtonsHtml}
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        // Renderizar la pestaña de Jugadores (Leaderboard)
+        if (currentActiveTab === 'players') {
+            const playersContainer = document.getElementById('playersList');
+            playersContainer.innerHTML = "";
+
+            let sortedPlayers = Object.values(playersMap).sort((a, b) => b.points - a.points);
+
+            if (sortedPlayers.length === 0) {
+                playersContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>No hay jugadores con niveles verificados registrados aún.</p>";
+                return;
+            }
+
+            sortedPlayers.forEach((player, index) => {
+                const rankNum = index + 1;
+                const avatarSrc = player.imageBase64 || 'https://via.placeholder.com/45';
+
+                const pCard = document.createElement('div');
+                pCard.className = 'player-card';
+                pCard.innerHTML = `
+                    <div class="player-rank">#${rankNum}</div>
+                    <img src="${avatarSrc}" class="player-avatar" onerror="this.src='https://via.placeholder.com/45'">
+                    <div class="player-info">
+                        <h3 class="player-name">${player.name}</h3>
+                        <p class="player-details">Niveles verificados: ${player.verifiedLevelsCount}</p>
+                    </div>
+                    <div class="player-points">${player.points} pts</div>
+                `;
+                playersContainer.appendChild(pCard);
+            });
+        }
     }
 
-    window.openDetailModal = (name, creator, verifier, levelId, youtubeUrl) => {
+    window.openDetailModal = (name, creator, verifier, levelId, youtubeUrl, thumbUrl) => {
         document.getElementById('modalLevelTitle').innerText = name;
         document.getElementById('modalLevelCreators').innerText = `Por ${creator} • Verificado por ${verifier}`;
         document.getElementById('modalLevelIdText').innerText = `ID: ${levelId}`;
-        document.getElementById('modalYoutubeLink').href = youtubeUrl;
+        
+        // Configurar la miniatura interactiva de YouTube
+        document.getElementById('modalYoutubeAnchor').href = youtubeUrl;
+        document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
+
         window.selectedLevelIdForCopy = levelId;
         document.getElementById('levelDetailModal').style.display = 'flex';
     };
@@ -1144,10 +1334,8 @@
             levels = levels.filter(l => l.id !== id);
             localStorage.setItem('gd_custom_levels', JSON.stringify(levels));
             
-            // Si borras el nivel, se quita también un registro del aviso de nivel añadido
             removeLatestLevelAdditionRecord();
-
-            loadLevels();
+            loadDataAndRender();
             alert("Nivel eliminado correctamente.");
         }
     };
