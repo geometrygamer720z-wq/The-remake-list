@@ -225,8 +225,6 @@
         <button class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
     </div>
 
-    <!-- El botón de código de administrador ha sido eliminado permanentemente de la interfaz -->
-
     <div id="listViewContainer"><div id="demonList"></div></div>
     <div id="playersViewContainer" style="display: none;"><div id="playersList"></div></div>
     <div id="personsViewContainer" style="display: none;"><div id="personsList"></div></div>
@@ -303,8 +301,7 @@
 
             <input type="text" id="lvlId" placeholder="Geometry Dash Level ID" required>
             <input type="number" id="lvlRank" placeholder="Top Rank Position (Ex: 1)" required>
-            <input type="url" id="lvlYoutube" placeholder="YouTube Video URL" required>
-
+            
             <div class="image-source-selector">
                 <label id="m-add-img-cat" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Image Source:</label>
                 <select id="imageSourceType" onchange="toggleImageSourceInputs()" style="margin-bottom:10px;">
@@ -315,7 +312,16 @@
                     <input type="file" id="lvlLogoFile" accept="image/*" style="color: var(--text-muted);">
                 </div>
             </div>
-            <button type="submit" class="btn" id="m-add-submit" style="width:100%; padding: 12px;">Add Level to List</button>
+
+            <input type="url" id="lvlYoutube" placeholder="YouTube Video URL" required>
+
+            <label id="m-add-nong" style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">Uses NONG song?</label>
+            <select id="lvlNongSelect" style="margin-top:5px;">
+                <option value="no" id="opt-nong-no">No</option>
+                <option value="yes" id="opt-nong-yes">Yes</option>
+            </select>
+
+            <button type="submit" class="btn" id="m-add-submit" style="width:100%; padding: 12px; margin-top: 10px;">Add Level to List</button>
         </form>
     </div>
 </div>
@@ -355,7 +361,26 @@
 
             <input type="text" id="editLvlCodeId" placeholder="Level ID" required>
             <input type="number" id="editLvlRank" placeholder="Top Rank Position" required>
+
+            <div class="image-source-selector">
+                <label id="m-edit-img-cat" style="display:block; margin-bottom:8px; font-weight:bold; color:var(--accent);">Image Source:</label>
+                <select id="editImageSourceType" onchange="toggleEditImageSourceInputs()" style="margin-bottom:10px;">
+                    <option value="youtube" id="edit-opt-yt-thumb">Use YouTube Thumbnail</option>
+                    <option value="custom" id="edit-opt-custom-img">Upload Custom Image</option>
+                </select>
+                <div id="editCustomImageContainer" style="display:none;">
+                    <input type="file" id="editLvlLogoFile" accept="image/*" style="color: var(--text-muted);">
+                </div>
+            </div>
+
             <input type="url" id="editLvlYoutube" placeholder="YouTube Video URL" required>
+
+            <label id="m-edit-nong" style="display:block; margin-top:10px; color:var(--accent); font-weight:bold; font-size:0.9rem;">Uses NONG song?</label>
+            <select id="editLvlNongSelect" style="margin-top:5px;">
+                <option value="no" id="edit-opt-nong-no">No</option>
+                <option value="yes" id="edit-opt-nong-yes">Yes</option>
+            </select>
+
             <button type="submit" class="btn" id="m-edit-submit" style="width:100%; margin-top:10px; padding: 12px;">Save Changes</button>
         </form>
     </div>
@@ -398,7 +423,6 @@
     </div>
 </div>
 
-<!-- Modal de confirmación de contraseña para eliminar cuenta -->
 <div id="deleteAccountConfirmModal" class="modal" style="z-index: 1050;">
     <div class="modal-content" style="max-width: 380px;">
         <span class="close-btn" onclick="closeDeleteAccountPrompt()">&times;</span>
@@ -441,15 +465,19 @@
         <span class="close-btn" onclick="closeDetailModal()">&times;</span>
         <h3 id="modalLevelTitle" style="color:var(--accent); margin-top:0;"></h3>
         <p id="modalLevelCreators" style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;"></p>
-        <a id="modalYoutubeAnchor" href="#" target="_blank" style="text-decoration: none;">
-            <div class="modal-yt-container">
-                <img id="modalYoutubeThumbImg" src="" class="modal-yt-thumb" alt="YouTube Thumbnail">
-                <div class="modal-yt-overlay">
-                    <div class="play-icon-circle"><div class="play-triangle"></div></div>
-                    <span id="m-modal-yt-text" style="color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem;">Watch video on YouTube</span>
+        
+        <div id="modalYoutubeContainerWrapper" style="display: block;">
+            <a id="modalYoutubeAnchor" href="#" target="_blank" style="text-decoration: none;">
+                <div class="modal-yt-container">
+                    <img id="modalYoutubeThumbImg" src="" class="modal-yt-thumb" alt="YouTube Thumbnail">
+                    <div class="modal-yt-overlay">
+                        <div class="play-icon-circle"><div class="play-triangle"></div></div>
+                        <span id="m-modal-yt-text" style="color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.85rem;">Watch video on YouTube</span>
+                    </div>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
+
         <div style="background:#1c1c1c; padding: 12px 15px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-weight: bold;" id="modalLevelIdText">ID: </span>
             <button class="btn-copy" id="m-copy-btn" onclick="copyLevelId()">Copy ID</button>
@@ -547,6 +575,9 @@
             mAddImgCat: "Image Source:",
             optYtThumb: "Use YouTube Thumbnail",
             optCustomImg: "Upload Custom Image",
+            mAddNong: "Uses NONG song?",
+            optNongNo: "No",
+            optNongYes: "Yes",
             mAddSubmit: "Add Level to List",
             mEditTitle: "Edit Level",
             mEditSubmit: "Save Changes",
@@ -620,6 +651,9 @@
             mAddImgCat: "Categoría de Imágenes:",
             optYtThumb: "Usar miniatura de YouTube",
             optCustomImg: "Subir imagen personalizada",
+            mAddNong: "¿Usa canción NONG?",
+            optNongNo: "No",
+            optNongYes: "Sí",
             mAddSubmit: "Añadir Nivel a la Lista",
             mEditTitle: "Editar Nivel",
             mEditSubmit: "Guardar Cambios",
@@ -698,6 +732,9 @@
         document.getElementById('m-add-img-cat').innerText = t.mAddImgCat;
         document.getElementById('opt-yt-thumb').innerText = t.optYtThumb;
         document.getElementById('opt-custom-img').innerText = t.optCustomImg;
+        document.getElementById('m-add-nong').innerText = t.mAddNong;
+        document.getElementById('opt-nong-no').innerText = t.optNongNo;
+        document.getElementById('opt-nong-yes').innerText = t.optNongYes;
         document.getElementById('m-add-submit').innerText = t.mAddSubmit;
 
         document.getElementById('m-edit-title').innerText = t.mEditTitle;
@@ -717,6 +754,12 @@
         document.getElementById('editLvlCodeId').placeholder = t.lvlIdPH;
         document.getElementById('editLvlRank').placeholder = t.lvlRankPH;
         document.getElementById('editLvlYoutube').placeholder = t.lvlYoutubePH;
+        document.getElementById('m-edit-img-cat').innerText = t.mAddImgCat;
+        document.getElementById('edit-opt-yt-thumb').innerText = t.optYtThumb;
+        document.getElementById('edit-opt-custom-img').innerText = t.optCustomImg;
+        document.getElementById('m-edit-nong').innerText = t.mAddNong;
+        document.getElementById('edit-opt-nong-no').innerText = t.optNongNo;
+        document.getElementById('edit-opt-nong-yes').innerText = t.optNongYes;
         document.getElementById('m-edit-submit').innerText = t.mEditSubmit;
 
         document.getElementById('m-auth-title').innerText = t.mAuthTitle;
@@ -783,19 +826,14 @@
         }
     }
 
-    // Webhook de Discord optimizado
-    async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, verifierText) {
+    async function sendDiscordWebhook(levelName, creatorName, rank, levelId, youtubeUrl, imageSource, logoBase64, verifierText, usesNong) {
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1571591905416839220/zOa0_eBCVqTjXDIcW1CZKjjRyan_CyWWZrzv9xQmIB83zaqDkcuoam78jnx6h56cULdr";
         
         let imageUrl = "";
         if (imageSource === 'custom' && logoBase64) {
             imageUrl = logoBase64;
-        } else {
-            let ytId = "";
-            if (youtubeUrl) {
-                let match = youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                ytId = match ? match[1] : "";
-            }
+        } else if (youtubeUrl) {
+            let ytId = extractYouTubeId(youtubeUrl);
             if (ytId) {
                 imageUrl = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
             }
@@ -806,7 +844,7 @@
             embeds: [
                 {
                     title: `#${rank} - ${levelName}`,
-                    description: `👤 **Creator:** ${creatorName}\n🛡️ **Verifier:** ${verifierText}\n🆔 **GD ID:** \`${levelId}\``,
+                    description: `👤 **Creator:** ${creatorName}\n🛡️ **Verifier:** ${verifierText}\n🆔 **GD ID:** \`${levelId}\`\n🎵 **NONG Song:** ${usesNong ? 'Yes' : 'No'}`,
                     color: 52428,
                     image: {
                         url: imageUrl
@@ -1070,7 +1108,9 @@
 
     window.openAddLevelModal = () => {
         document.getElementById('is2pSelect').value = "no";
+        document.getElementById('imageSourceType').value = "youtube";
         toggle2pOptions();
+        toggleImageSourceInputs();
         document.getElementById('addLevelModal').style.display = 'flex';
     };
     window.closeAddLevelModal = () => { document.getElementById('addLevelModal').style.display = 'none'; };
@@ -1133,7 +1173,30 @@
 
     window.toggleImageSourceInputs = () => {
         const val = document.getElementById('imageSourceType').value;
-        document.getElementById('customImageContainer').style.display = (val === 'custom') ? 'block' : 'none';
+        const customContainer = document.getElementById('customImageContainer');
+        const youtubeInput = document.getElementById('lvlYoutube');
+        
+        if (val === 'custom') {
+            customContainer.style.display = 'block';
+            youtubeInput.required = false; // Opcional si usas imagen tuya
+        } else {
+            customContainer.style.display = 'none';
+            youtubeInput.required = true; // Obligatorio si usas miniatura de youtube
+        }
+    };
+
+    window.toggleEditImageSourceInputs = () => {
+        const val = document.getElementById('editImageSourceType').value;
+        const customContainer = document.getElementById('editCustomImageContainer');
+        const youtubeInput = document.getElementById('editLvlYoutube');
+        
+        if (val === 'custom') {
+            customContainer.style.display = 'block';
+            youtubeInput.required = false; // Opcional si usas imagen tuya
+        } else {
+            customContainer.style.display = 'none';
+            youtubeInput.required = true; // Obligatorio si usas miniatura de youtube
+        }
     };
 
     window.handleAddNewLevel = async (e) => {
@@ -1150,6 +1213,7 @@
         const youtubeUrl = document.getElementById('lvlYoutube').value.trim();
         const imageSource = document.getElementById('imageSourceType').value;
         const fileInput = document.getElementById('lvlLogoFile');
+        const usesNong = document.getElementById('lvlNongSelect').value === 'yes';
 
         let verifierText = verifier1;
         if (is2p && verificationMode === 'duo' && verifier2) {
@@ -1169,6 +1233,7 @@
             youtubeUrl,
             imageSource,
             logoBase64: '',
+            usesNong,
             victors: []
         };
 
@@ -1178,7 +1243,7 @@
             dbData.levels.push(newLevel);
             await saveCloudData();
 
-            await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, verifierText);
+            await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, verifierText, usesNong);
 
             window.location.reload();
         };
@@ -1210,7 +1275,10 @@
         document.getElementById('editLvlVerifier2').value = lvl.verifier2 || '';
         document.getElementById('editLvlCodeId').value = lvl.levelId;
         document.getElementById('editLvlRank').value = lvl.rank;
-        document.getElementById('editLvlYoutube').value = lvl.youtubeUrl;
+        document.getElementById('editLvlYoutube').value = lvl.youtubeUrl || '';
+        document.getElementById('editImageSourceType').value = lvl.imageSource || 'youtube';
+        document.getElementById('editLvlNongSelect').value = lvl.usesNong ? 'yes' : 'no';
+        toggleEditImageSourceInputs();
 
         document.getElementById('editLevelModal').style.display = 'flex';
     };
@@ -1230,6 +1298,8 @@
         const levelId = document.getElementById('editLvlCodeId').value.trim();
         const rank = Number(document.getElementById('editLvlRank').value);
         const youtubeUrl = document.getElementById('editLvlYoutube').value.trim();
+        const imageSource = document.getElementById('editImageSourceType').value;
+        const usesNong = document.getElementById('editLvlNongSelect').value === 'yes';
 
         let lvl = dbData.levels.find(l => l.id === id);
         if (lvl) {
@@ -1242,6 +1312,8 @@
             lvl.levelId = levelId;
             lvl.rank = rank;
             lvl.youtubeUrl = youtubeUrl;
+            lvl.imageSource = imageSource;
+            lvl.usesNong = usesNong;
 
             await saveCloudData();
             window.location.reload();
@@ -1293,7 +1365,7 @@
                     ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
                     <div class="level-info">
                         <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                        <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''}</p>
+                        <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
                     </div>
                     <div class="level-points">${points} pts</div>
                     <div class="level-actions">
@@ -1436,10 +1508,23 @@
         if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
             verifierText += ` & ${lvl.verifier2}`;
         }
-        document.getElementById('modalLevelCreators').innerText = `${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText}`;
+        
+        let creatorDetails = `${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText}`;
+        if (lvl.usesNong) {
+            creatorDetails += ` • <span style="color:#ffcc00; font-weight:bold;">NONG</span>`;
+        }
+        document.getElementById('modalLevelCreators').innerHTML = creatorDetails;
         document.getElementById('modalLevelIdText').innerText = `ID: ${lvl.levelId}`;
-        document.getElementById('modalYoutubeAnchor').href = lvl.youtubeUrl;
-        document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
+        
+        const ytWrapper = document.getElementById('modalYoutubeContainerWrapper');
+        if (lvl.youtubeUrl && lvl.youtubeUrl.trim() !== '') {
+            ytWrapper.style.display = 'block';
+            document.getElementById('modalYoutubeAnchor').href = lvl.youtubeUrl;
+            document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
+        } else {
+            ytWrapper.style.display = 'none';
+        }
+
         window.selectedLevelIdForCopy = lvl.levelId;
 
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
