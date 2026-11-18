@@ -96,16 +96,41 @@
 
         .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
 
-        .admin-action-bar { display: none; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .admin-action-bar { display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 
+        /* Contenedores de vistas (Vertical y Horizontal) */
+        .lista-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .lista-horizontal {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        /* Tarjeta de Nivel adaptable a Vertical y Horizontal */
         .level-card {
             position: relative;
-            display: flex; align-items: center;
+            display: flex;
             background-color: var(--card-bg);
-            margin-bottom: 16px; padding: 20px; border-radius: 12px;
+            padding: 20px; border-radius: 12px;
             border-left: 6px solid var(--accent); box-shadow: 0 6px 20px rgba(0,0,0,0.7);
             overflow: hidden; cursor: pointer; min-height: 110px;
+            box-sizing: border-box;
         }
+
+        /* Si el contenedor es horizontal, cambiamos la estructura interna de la tarjeta a columna */
+        .lista-horizontal .level-card {
+            flex-direction: column;
+            align-items: stretch;
+            border-left: none;
+            border-top: 6px solid var(--accent);
+            padding: 15px;
+        }
+
         .level-card::before {
             content: "";
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -118,12 +143,36 @@
             position: relative;
             z-index: 2;
         }
+
         .thumbnail { width: 140px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 20px; background: #000; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+        .lista-horizontal .thumbnail {
+            width: 100%;
+            height: 130px;
+            margin-right: 0;
+            margin-bottom: 12px;
+        }
+
         .level-info { flex-grow: 1; }
-        .level-title { font-size: 1.5rem; font-weight: bold; margin: 0 0 6px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .level-creator { color: #cccccc; font-size: 1rem; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.3rem; margin-left: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .level-actions { display: flex; gap: 10px; margin-left: 20px; align-items: center; }
+        .level-title { font-size: 1.4rem; font-weight: bold; margin: 0 0 6px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .level-creator { color: #cccccc; font-size: 0.95rem; margin: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+        .level-points { font-weight: bold; color: #00ffcc; font-size: 1.2rem; margin-left: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); white-space: nowrap; }
+        
+        .lista-horizontal .level-card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .lista-horizontal .level-points {
+            margin-left: 0;
+        }
+
+        .level-actions { display: flex; gap: 8px; margin-left: 20px; align-items: center; }
+        .lista-horizontal .level-actions {
+            margin-left: 0;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
 
         .player-card, .person-card {
             display: flex; align-items: center; background-color: var(--card-bg);
@@ -223,9 +272,10 @@
 <div class="container">
     <div id="adminActionBar" class="admin-action-bar">
         <button class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
+        <button class="btn" id="toggleViewBtn" onclick="toggleListViewMode()" style="background: #222; border: 1px solid var(--accent); color: var(--accent);">Vista: Vertical</button>
     </div>
 
-    <div id="listViewContainer"><div id="demonList"></div></div>
+    <div id="listViewContainer"><div id="demonList" class="lista-vertical"></div></div>
     <div id="playersViewContainer" style="display: none;"><div id="playersList"></div></div>
     <div id="personsViewContainer" style="display: none;"><div id="personsList"></div></div>
 </div>
@@ -506,7 +556,7 @@
 
 <script>
     const BIN_ID = "6af91a2effd5d16053c23e4f";
-    const MASTER_KEY = "$2a$10$rEXcAt7DiTo1qjWclq7hoOOYciqND75Ww3q9jhHenELrejQYvPNr6";
+    const MASTER_KEY = "$2a$10$pgVYOcVhug4OKJY5dikjTuwsFBMYxDgqFI9xmG3o519r502z.HyvK";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let dbData = {
@@ -519,6 +569,7 @@
     let currentActiveTab = 'list';
     let currentLang = localStorage.getItem('gd_lang') || 'en';
     let currentSelectedLevelId = null;
+    let isHorizontalView = false;
 
     const translations = {
         en: {
@@ -529,6 +580,8 @@
             signIn: "Sign In",
             signOut: "Sign Out",
             addLevel: "+ Add Level",
+            viewVertical: "Vista: Vertical",
+            viewHorizontal: "Vista: Horizontal",
             noLevels: "No levels added yet.",
             noPlayers: "No verifying players yet.",
             noPersons: "No registered persons yet.",
@@ -605,6 +658,8 @@
             signIn: "Iniciar sesión",
             signOut: "Cerrar sesión",
             addLevel: "+ Añadir Nivel",
+            viewVertical: "Vista: Vertical",
+            viewHorizontal: "Vista: Horizontal",
             noLevels: "No hay niveles añadidos todavía.",
             noPlayers: "No hay jugadores verificadores todavía.",
             noPersons: "No hay personas registradas aún.",
@@ -696,6 +751,7 @@
         document.getElementById('tabPlayersBtn').innerText = t.tabPlayers;
         document.getElementById('tabPersonsBtn').innerText = t.tabPersons;
         document.getElementById('addLevelBtnText').innerText = t.addLevel;
+        document.getElementById('toggleViewBtn').innerText = isHorizontalView ? t.viewHorizontal : t.viewVertical;
 
         document.getElementById('m-sub-title').innerText = t.mSubTitle;
         document.getElementById('m-sub-text').innerText = t.mSubText;
@@ -888,6 +944,20 @@
         document.getElementById('listViewContainer').style.display = tab === 'list' ? 'block' : 'none';
         document.getElementById('playersViewContainer').style.display = tab === 'players' ? 'block' : 'none';
         document.getElementById('personsViewContainer').style.display = tab === 'persons' ? 'block' : 'none';
+        
+        // Mostrar o esconder el botón de cambiar vista según la pestaña activa
+        const toggleBtn = document.getElementById('toggleViewBtn');
+        if (toggleBtn) {
+            toggleBtn.style.display = (tab === 'list') ? 'inline-block' : 'none';
+        }
+
+        loadDataAndRender();
+    };
+
+    window.toggleListViewMode = () => {
+        isHorizontalView = !isHorizontalView;
+        const t = translations[currentLang];
+        document.getElementById('toggleViewBtn').innerText = isHorizontalView ? t.viewHorizontal : t.viewVertical;
         loadDataAndRender();
     };
 
@@ -915,7 +985,7 @@
         const adminActionBar = document.getElementById('adminActionBar');
 
         if (adminActionBar) {
-            adminActionBar.style.display = isAdmin ? 'flex' : 'none';
+            adminActionBar.style.display = 'flex'; // Siempre visible para mostrar el botón de vista
         }
 
         const t = translations[currentLang];
@@ -963,7 +1033,7 @@
         dbData.discordUrl = url;
         await saveCloudData();
         closeDiscordModal();
-        alert(currentLang === 'es' ? "¡Enlace de Discord actualizado y guardado en la nube para todos!" : "Discord link updated and saved to the cloud for everyone!");
+        alert(currentLang === 'es' ? "¡En enlace de Discord actualizado y guardado en la nube para todos!" : "Discord link updated and saved to the cloud for everyone!");
     };
 
     window.handleTiktokClick = () => {
@@ -988,7 +1058,7 @@
         dbData.tiktokUrl = url;
         await saveCloudData();
         closeTiktokModal();
-        alert(currentLang === 'es' ? "¡Enlace de TikTok actualizado y guardado en la nube para todos!" : "TikTok link updated and saved to the cloud for everyone!");
+        alert(currentLang === 'es' ? "¡En enlace de TikTok actualizado y guardado en la nube para todos!" : "TikTok link updated and saved to the cloud for everyone!");
     };
 
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
@@ -1178,10 +1248,10 @@
         
         if (val === 'custom') {
             customContainer.style.display = 'block';
-            youtubeInput.required = false; // Opcional si usas imagen tuya
+            youtubeInput.required = false;
         } else {
             customContainer.style.display = 'none';
-            youtubeInput.required = true; // Obligatorio si usas miniatura de youtube
+            youtubeInput.required = true;
         }
     };
 
@@ -1192,10 +1262,10 @@
         
         if (val === 'custom') {
             customContainer.style.display = 'block';
-            youtubeInput.required = false; // Opcional si usas imagen tuya
+            youtubeInput.required = false;
         } else {
             customContainer.style.display = 'none';
-            youtubeInput.required = true; // Obligatorio si usas miniatura de youtube
+            youtubeInput.required = true;
         }
     };
 
@@ -1344,6 +1414,7 @@
 
         if (currentActiveTab === 'list') {
             const container = document.getElementById('demonList');
+            container.className = isHorizontalView ? 'lista-horizontal' : 'lista-vertical';
             container.innerHTML = levels.length === 0 ? `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noLevels}</p>` : "";
             
             levels.forEach(lvl => {
@@ -1361,18 +1432,35 @@
                 card.style.setProperty('--card-bg-img', `url('${thumbUrl || ''}')`);
                 card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openDetailModal(lvl, thumbUrl); };
 
-                card.innerHTML = `
-                    ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
-                    <div class="level-info">
-                        <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                        <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
-                    </div>
-                    <div class="level-points">${points} pts</div>
-                    <div class="level-actions">
-                        ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">${t.edit}</button>` : ''}
-                        ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">${t.delete}</button>` : ''}
-                    </div>
-                `;
+                if (isHorizontalView) {
+                    card.innerHTML = `
+                        ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
+                        <div class="level-info">
+                            <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
+                            <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
+                        </div>
+                        <div class="level-card-bottom">
+                            <div class="level-points">${points} pts</div>
+                            <div class="level-actions">
+                                ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">${t.edit}</button>` : ''}
+                                ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">${t.delete}</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
+                        <div class="level-info">
+                            <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
+                            <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
+                        </div>
+                        <div class="level-points">${points} pts</div>
+                        <div class="level-actions">
+                            ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">${t.edit}</button>` : ''}
+                            ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">${t.delete}</button>` : ''}
+                        </div>
+                    `;
+                }
                 container.appendChild(card);
             });
         }
