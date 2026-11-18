@@ -98,7 +98,6 @@
 
         .admin-action-bar { display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 
-        /* Contenedores de vistas (Vertical y Horizontal) */
         .lista-vertical {
             display: flex;
             flex-direction: column;
@@ -111,7 +110,6 @@
             gap: 16px;
         }
 
-        /* Tarjeta de Nivel adaptable a Vertical y Horizontal */
         .level-card {
             position: relative;
             display: flex;
@@ -122,7 +120,6 @@
             box-sizing: border-box;
         }
 
-        /* Si el contenedor es horizontal, cambiamos la estructura interna de la tarjeta a columna */
         .lista-horizontal .level-card {
             flex-direction: column;
             align-items: stretch;
@@ -556,7 +553,7 @@
 
 <script>
     const BIN_ID = "6af91a2effd5d16053c23e4f";
-    const MASTER_KEY = "$2a$10$pgVYOcVhug4OKJY5dikjTuwsFBMYxDgqFI9xmG3o519r502z.HyvK";
+    const MASTER_KEY = "$2a$10$dtvPP5l9uDR5mU9t4wLGSuzZAfDsw.HrD/G0wW0mXruYItprbBDC6";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let dbData = {
@@ -945,7 +942,6 @@
         document.getElementById('playersViewContainer').style.display = tab === 'players' ? 'block' : 'none';
         document.getElementById('personsViewContainer').style.display = tab === 'persons' ? 'block' : 'none';
         
-        // Mostrar o esconder el botón de cambiar vista según la pestaña activa
         const toggleBtn = document.getElementById('toggleViewBtn');
         if (toggleBtn) {
             toggleBtn.style.display = (tab === 'list') ? 'inline-block' : 'none';
@@ -985,7 +981,7 @@
         const adminActionBar = document.getElementById('adminActionBar');
 
         if (adminActionBar) {
-            adminActionBar.style.display = 'flex'; // Siempre visible para mostrar el botón de vista
+            adminActionBar.style.display = 'flex';
         }
 
         const t = translations[currentLang];
@@ -1033,7 +1029,7 @@
         dbData.discordUrl = url;
         await saveCloudData();
         closeDiscordModal();
-        alert(currentLang === 'es' ? "¡En enlace de Discord actualizado y guardado en la nube para todos!" : "Discord link updated and saved to the cloud for everyone!");
+        alert(currentLang === 'es' ? "¡Enlace de Discord actualizado y guardado en la nube para todos!" : "Discord link updated and saved to the cloud for everyone!");
     };
 
     window.handleTiktokClick = () => {
@@ -1058,7 +1054,7 @@
         dbData.tiktokUrl = url;
         await saveCloudData();
         closeTiktokModal();
-        alert(currentLang === 'es' ? "¡En enlace de TikTok actualizado y guardado en la nube para todos!" : "TikTok link updated and saved to the cloud for everyone!");
+        alert(currentLang === 'es' ? "¡Enlace de TikTok actualizado y guardado en la nube para todos!" : "TikTok link updated and saved to the cloud for everyone!");
     };
 
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
