@@ -594,10 +594,44 @@
     const BIN_ID = "6af91a2effd5d16053c23e4f";
     const MASTER_KEY = "$2a$10$dtvPP5l9uDR5mU9t4wLGSuzZAfDsw.HrD/G0wW0mXruYItprbBDC6";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-    const ADMIN_PASSWORD = "admin"; // Cambia esta contraseña por la que tú quieras
+    const ADMIN_PASSWORD = "6767XDXD";
 
     function showPageAlert(msg) {
         window.alert(msg);
+    }
+
+    function compressImageFile(file, maxWidth = 240, maxHeight = 240, quality = 0.7) {
+        return new Promise((resolve) => {
+            if (!file) {
+                resolve("");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = () => resolve(ev.target.result || "");
+                img.src = ev.target.result;
+            };
+            reader.onerror = () => resolve("");
+            reader.readAsDataURL(file);
+        });
     }
 
     let dbData = {
@@ -966,19 +1000,21 @@
 
     async function fetchCloudData() {
         try {
-            const res = await fetch(JSONBIN_URL + "/latest", {
+            const res = await fetch(`${JSONBIN_URL}/latest?_t=${Date.now()}`, {
+                cache: 'no-store',
                 headers: { 'X-Master-Key': MASTER_KEY }
             });
-            if (res.ok) {
-                const json = await res.json();
-                if (json && json.record) {
-                    dbData = {
-                        levels: Array.isArray(json.record.levels) ? json.record.levels : [],
-                        discordUrl: json.record.discordUrl || "",
-                        tiktokUrl: json.record.tiktokUrl || "",
-                        accounts: (json.record.accounts && typeof json.record.accounts === 'object') ? json.record.accounts : {}
-                    };
-                }
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+            const json = await res.json();
+            if (json && json.record) {
+                dbData = {
+                    levels: Array.isArray(json.record.levels) ? json.record.levels : [],
+                    discordUrl: json.record.discordUrl || "",
+                    tiktokUrl: json.record.tiktokUrl || "",
+                    accounts: (json.record.accounts && typeof json.record.accounts === 'object') ? json.record.accounts : {}
+                };
             }
         } catch (err) {
             console.error("Error connecting to JSONBin:", err);
@@ -999,6 +1035,7 @@
         try {
             const res = await fetch(JSONBIN_URL, {
                 method: 'PUT',
+                cache: 'no-store',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Master-Key': MASTER_KEY
@@ -1162,10 +1199,13 @@
 
     window.handleSaveDiscordUrl = async (e) => {
         e.preventDefault();
-        const url = document.getElementById('discordUrlInput').value.trim();
-        dbData.discordUrl = url;
+        const prevUrl = dbData.discordUrl;
+        dbData.discordUrl = document.getElementById('discordUrlInput').value.trim();
         const ok = await saveCloudData();
-        if (!ok) return;
+        if (!ok) {
+            dbData.discordUrl = prevUrl;
+            return;
+        }
         closeDiscordModal();
         showPageAlert(translations[currentLang].discordSaved);
     };
@@ -1189,10 +1229,13 @@
 
     window.handleSaveTiktokUrl = async (e) => {
         e.preventDefault();
-        const url = document.getElementById('tiktokUrlInput').value.trim();
-        dbData.tiktokUrl = url;
+        const prevUrl = dbData.tiktokUrl;
+        dbData.tiktokUrl = document.getElementById('tiktokUrlInput').value.trim();
         const ok = await saveCloudData();
-        if (!ok) return;
+        if (!ok) {
+            dbData.tiktokUrl = prevUrl;
+            return;
+        }
         closeTiktokModal();
         showPageAlert(translations[currentLang].tiktokSaved);
     };
@@ -1209,42 +1252,43 @@
         const t = translations[currentLang];
 
         if (!dbData.accounts) dbData.accounts = {};
+        const prevAccounts = JSON.parse(JSON.stringify(dbData.accounts));
+        const imgBase64 = (fileInput.files && fileInput.files[0])
+            ? await compressImageFile(fileInput.files[0], 180, 180, 0.7)
+            : '';
 
-        const processLogin = async (imgBase64) => {
-            if (dbData.accounts[name]) {
-                if (dbData.accounts[name].pass === pass) {
-                    localStorage.setItem('gd_active_user', name);
-                    if (imgBase64) {
-                        dbData.accounts[name].imageBase64 = imgBase64;
-                    }
-                    if (tiktokUrl) {
-                        dbData.accounts[name].tiktokUrl = tiktokUrl;
-                    }
-                } else {
-                    showPageAlert(t.wrongUserPass);
-                    return;
+        if (dbData.accounts[name]) {
+            if (dbData.accounts[name].pass === pass) {
+                if (imgBase64) {
+                    dbData.accounts[name].imageBase64 = imgBase64;
+                }
+                if (tiktokUrl) {
+                    dbData.accounts[name].tiktokUrl = tiktokUrl;
                 }
             } else {
-                dbData.accounts[name] = { name, pass, tiktokUrl: tiktokUrl, imageBase64: imgBase64 || '' };
-                localStorage.setItem('gd_active_user', name);
+                showPageAlert(t.wrongUserPass);
+                return;
             }
-            const ok = await saveCloudData();
-            if (!ok) return;
-            window.location.reload();
-        };
-
-        if (fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = async function(ev) { await processLogin(ev.target.result); };
-            reader.readAsDataURL(fileInput.files[0]);
         } else {
-            await processLogin('');
+            dbData.accounts[name] = { name, pass, tiktokUrl: tiktokUrl, imageBase64: imgBase64 || '' };
         }
+
+        const ok = await saveCloudData();
+        if (!ok) {
+            dbData.accounts = prevAccounts;
+            return;
+        }
+        localStorage.setItem('gd_active_user', name);
+        closeAuthModal();
+        checkLocalStorageSession();
+        updateAccountsDatalist();
+        loadDataAndRender();
     };
 
     window.logoutProfile = () => {
         localStorage.removeItem('gd_active_user');
-        window.location.reload();
+        checkLocalStorageSession();
+        loadDataAndRender();
     };
 
     window.openProfileModal = () => {
@@ -1263,6 +1307,7 @@
         const activeUser = localStorage.getItem('gd_active_user');
         if (!activeUser || !dbData.accounts[activeUser]) return;
 
+        const prevAccounts = JSON.parse(JSON.stringify(dbData.accounts));
         const newPass = document.getElementById('profilePass').value;
         const newTiktok = document.getElementById('profileTiktok').value.trim();
         const fileInput = document.getElementById('profileImgFile');
@@ -1272,22 +1317,21 @@
         }
         dbData.accounts[activeUser].tiktokUrl = newTiktok;
 
-        const updateDataWithImg = async (imgBase64) => {
-            if (imgBase64) {
-                dbData.accounts[activeUser].imageBase64 = imgBase64;
-            }
-            const ok = await saveCloudData();
-            if (!ok) return;
-            window.location.reload();
-        };
-
         if (fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = async function(ev) { await updateDataWithImg(ev.target.result); };
-            reader.readAsDataURL(fileInput.files[0]);
-        } else {
-            await updateDataWithImg(dbData.accounts[activeUser].imageBase64);
+            const compressed = await compressImageFile(fileInput.files[0], 180, 180, 0.7);
+            if (compressed) {
+                dbData.accounts[activeUser].imageBase64 = compressed;
+            }
         }
+
+        const ok = await saveCloudData();
+        if (!ok) {
+            dbData.accounts = prevAccounts;
+            return;
+        }
+        closeProfileModal();
+        checkLocalStorageSession();
+        loadDataAndRender();
     };
 
     window.openDeleteAccountPrompt = () => {
@@ -1307,11 +1351,19 @@
         if (!activeUser || !dbData.accounts[activeUser]) return;
 
         if (dbData.accounts[activeUser].pass === enteredPass) {
+            const prevAccounts = JSON.parse(JSON.stringify(dbData.accounts));
             delete dbData.accounts[activeUser];
-            localStorage.removeItem('gd_active_user');
             const ok = await saveCloudData();
-            if (!ok) return;
-            window.location.reload();
+            if (!ok) {
+                dbData.accounts = prevAccounts;
+                return;
+            }
+            localStorage.removeItem('gd_active_user');
+            closeDeleteAccountPrompt();
+            closeProfileModal();
+            checkLocalStorageSession();
+            updateAccountsDatalist();
+            loadDataAndRender();
         } else {
             showPageAlert(translations[currentLang].wrongPassword);
             document.getElementById('confirmAccountPass').value = "";
@@ -1432,6 +1484,10 @@
             verifierText = `${verifier1} & ${verifier2}`;
         }
 
+        const logo = (imageSource === 'custom' && fileInput.files && fileInput.files[0])
+            ? await compressImageFile(fileInput.files[0], 320, 180, 0.7)
+            : '';
+
         const newLevel = {
             id: 'lvl_' + Date.now(),
             name,
@@ -1444,401 +1500,14 @@
             rank,
             youtubeUrl,
             imageSource,
-            logoBase64: '',
+            logoBase64: logo,
             usesNong,
             victors: []
         };
 
-        const saveIt = async (logo) => {
-            newLevel.logoBase64 = logo || '';
-            if (!dbData.levels) dbData.levels = [];
-            dbData.levels.push(newLevel);
-            const ok = await saveCloudData();
-            if (!ok) {
-                dbData.levels.pop();
-                return;
-            }
-
-            await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, verifierText, usesNong);
-
-            window.location.reload();
-        };
-
-        if (imageSource === 'custom' && fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = async function(ev) { await saveIt(ev.target.result); };
-            reader.readAsDataURL(fileInput.files[0]);
-        } else {
-            await saveIt('');
-        }
-    };
-
-    window.openEditModal = (lvl) => {
-        document.getElementById('editLvlIdKey').value = lvl.id;
-        document.getElementById('editLvlName').value = lvl.name;
-        document.getElementById('editLvlCreator').value = lvl.creator;
-        
-        const is2p = lvl.is2p || false;
-        document.getElementById('editIs2pSelect').value = is2p ? 'yes' : 'no';
-        toggleEdit2pOptions();
-
-        if (is2p) {
-            document.getElementById('editVerificationMode').value = lvl.verificationMode || 'solo';
-            toggleEditVerificationMode();
-        }
-
-        document.getElementById('editLvlVerifier').value = lvl.verifier || '';
-        document.getElementById('editLvlVerifier2').value = lvl.verifier2 || '';
-        document.getElementById('editLvlCodeId').value = lvl.levelId;
-        document.getElementById('editLvlRank').value = lvl.rank;
-        document.getElementById('editLvlYoutube').value = lvl.youtubeUrl || '';
-        document.getElementById('editImageSourceType').value = lvl.imageSource || 'youtube';
-        document.getElementById('editLvlNongSelect').value = lvl.usesNong ? 'yes' : 'no';
-        toggleEditImageSourceInputs();
-
-        document.getElementById('editLevelModal').style.display = 'flex';
-    };
-
-    window.closeEditModal = () => { document.getElementById('editLevelModal').style.display = 'none'; };
-
-    window.handleEditLevel = async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('editLvlIdKey').value;
-        const name = document.getElementById('editLvlName').value.trim();
-        const creator = document.getElementById('editLvlCreator').value.trim();
-        const is2p = document.getElementById('editIs2pSelect').value === 'yes';
-        const verificationMode = is2p ? document.getElementById('editVerificationMode').value : 'solo';
-        const verifier1 = document.getElementById('editLvlVerifier').value.trim();
-        const verifier2 = (is2p && verificationMode === 'duo') ? document.getElementById('editLvlVerifier2').value.trim() : '';
-
-        const levelId = document.getElementById('editLvlCodeId').value.trim();
-        const rank = Number(document.getElementById('editLvlRank').value);
-        const youtubeUrl = document.getElementById('editLvlYoutube').value.trim();
-        const imageSource = document.getElementById('editImageSourceType').value;
-        const usesNong = document.getElementById('editLvlNongSelect').value === 'yes';
-
-        let lvl = dbData.levels.find(l => l.id === id);
-        if (lvl) {
-            lvl.name = name;
-            lvl.creator = creator;
-            lvl.is2p = is2p;
-            lvl.verificationMode = verificationMode;
-            lvl.verifier = verifier1;
-            lvl.verifier2 = verifier2;
-            lvl.levelId = levelId;
-            lvl.rank = rank;
-            lvl.youtubeUrl = youtubeUrl;
-            lvl.imageSource = imageSource;
-            lvl.usesNong = usesNong;
-
-            const ok = await saveCloudData();
-            if (!ok) return;
-            window.location.reload();
-        }
-    };
-
-    window.deleteLevel = async (id) => {
-        if (confirm(translations[currentLang].delLevelConfirm)) {
-            dbData.levels = dbData.levels.filter(l => l.id !== id);
-            const ok = await saveCloudData();
-            if (!ok) return;
-            window.location.reload();
-        }
-    };
-
-    window.deleteRegisteredPerson = async (username) => {
-        const t = translations[currentLang];
-        if (confirm(t.delPersonConfirm(username))) {
-            delete dbData.accounts[username];
-            const ok = await saveCloudData();
-            if (!ok) return;
-            window.location.reload();
-        }
-    };
-
-    function loadDataAndRender() {
-        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
-        let levels = dbData.levels || [];
-        levels.sort((a, b) => a.rank - b.rank);
-        const t = translations[currentLang];
-
-        if (currentActiveTab === 'list') {
-            const container = document.getElementById('demonList');
-            container.className = isHorizontalView ? 'lista-horizontal' : 'lista-vertical';
-            container.innerHTML = levels.length === 0 ? `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noLevels}</p>` : "";
+        if (!dbData.levels) dbData.levels = [];
+        dbData.levels.push(newLevel);
+        const ok = await saveCloudData();
+        if (!ok) {
+            dbData.levels.pop();
             
-            levels.forEach(lvl => {
-                const points = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
-                const ytId = extractYouTubeId(lvl.youtubeUrl);
-                const thumbUrl = (lvl.imageSource === 'custom' && lvl.logoBase64) ? lvl.logoBase64 : (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '');
-
-                let verifierText = lvl.verifier;
-                if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
-                    verifierText = `${lvl.verifier} & ${lvl.verifier2}`;
-                }
-
-                const card = document.createElement('div');
-                card.className = 'level-card';
-                card.style.setProperty('--card-bg-img', `url('${thumbUrl || ''}')`);
-                card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openDetailModal(lvl, thumbUrl); };
-
-                if (isHorizontalView) {
-                    card.innerHTML = `
-                        ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
-                        <div class="level-info">
-                            <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                            <p class="level-creator">${t.byText} ${lvl.creator} • ${t.verifiedByText} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
-                        </div>
-                        <div class="level-card-bottom">
-                            <div class="level-points">${points} pts</div>
-                            <div class="level-actions">
-                                ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">${t.edit}</button>` : ''}
-                                ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">${t.delete}</button>` : ''}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
-                        <div class="level-info">
-                            <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                            <p class="level-creator">${t.byText} ${lvl.creator} • ${t.verifiedByText} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
-                        </div>
-                        <div class="level-points">${points} pts</div>
-                        <div class="level-actions">
-                            ${isAdmin ? `<button class="btn btn-edit" onclick="openEditModal(dbData.levels.find(l => l.id === '${lvl.id}'))">${t.edit}</button>` : ''}
-                            ${isAdmin ? `<button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteLevel('${lvl.id}')">${t.delete}</button>` : ''}
-                        </div>
-                    `;
-                }
-                container.appendChild(card);
-            });
-        }
-
-        if (currentActiveTab === 'players') {
-            const container = document.getElementById('playersList');
-            container.innerHTML = "";
-
-            let playerPointsMap = {};
-            levels.forEach(lvl => {
-                const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
-                if (lvl.verifier) {
-                    playerPointsMap[lvl.verifier] = (playerPointsMap[lvl.verifier] || 0) + pts;
-                }
-                if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
-                    playerPointsMap[lvl.verifier2] = (playerPointsMap[lvl.verifier2] || 0) + pts;
-                }
-                if (lvl.victors && Array.isArray(lvl.victors)) {
-                    lvl.victors.forEach(victor => {
-                        playerPointsMap[victor] = (playerPointsMap[victor] || 0) + Math.round(pts * 0.5);
-                    });
-                }
-            });
-
-            let playersArr = Object.keys(playerPointsMap).map(name => {
-                let acc = (dbData.accounts && dbData.accounts[name]) ? dbData.accounts[name] : {};
-                return { name, points: playerPointsMap[name], imageBase64: acc.imageBase64 || '', tiktokUrl: acc.tiktokUrl || '' };
-            });
-
-            playersArr.sort((a, b) => b.points - a.points);
-
-            if (playersArr.length === 0) {
-                container.innerHTML = `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noPlayers}</p>`;
-                return;
-            }
-
-            playersArr.forEach((player, index) => {
-                const card = document.createElement('div');
-                card.className = 'player-card';
-                card.onclick = () => openUserDetailModal(player, true);
-                card.innerHTML = `
-                    <div class="player-rank">#${index + 1}</div>
-                    <img src="${player.imageBase64 || 'https://via.placeholder.com/50'}" class="player-avatar" onerror="this.src='https://via.placeholder.com/50'">
-                    <div class="player-info">
-                        <h3 class="player-name">${player.name}</h3>
-                        <p class="player-details">${t.verifRole}</p>
-                    </div>
-                    <div class="player-points">${player.points} pts</div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        if (currentActiveTab === 'persons') {
-            const container = document.getElementById('personsList');
-            container.innerHTML = "";
-            const accountsArr = Object.values(dbData.accounts || {});
-
-            if (accountsArr.length === 0) {
-                container.innerHTML = `<p style='text-align:center; color:var(--text-muted); margin-top:40px;'>${t.noPersons}</p>`;
-                return;
-            }
-
-            accountsArr.forEach(person => {
-                const card = document.createElement('div');
-                card.className = 'person-card';
-                card.onclick = (e) => { if (e.target.tagName !== 'BUTTON') openUserDetailModal(person, false); };
-                card.innerHTML = `
-                    <img src="${person.imageBase64 || 'https://via.placeholder.com/50'}" class="person-avatar" onerror="this.src='https://via.placeholder.com/50'">
-                    <div class="person-info">
-                        <h3 class="person-name">${person.name}</h3>
-                        <p class="person-details">${t.activeCloudAccount}</p>
-                    </div>
-                    ${isAdmin ? `<div class="person-actions"><button class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteRegisteredPerson('${person.name}')">${t.delete}</button></div>` : ''}
-                `;
-                container.appendChild(card);
-            });
-        }
-    }
-
-    window.openUserDetailModal = (userObj, showCompletedLevels) => {
-        document.getElementById('userModalAvatar').src = userObj.imageBase64 || 'https://via.placeholder.com/70';
-        document.getElementById('userModalName').innerText = userObj.name;
-        document.getElementById('userModalRole').innerText = showCompletedLevels ? translations[currentLang].verifRole : translations[currentLang].activeCloudAccount;
-
-        const tiktokContainer = document.getElementById('userModalTiktokContainer');
-        const tiktokAnchor = document.getElementById('userModalTiktokAnchor');
-        if (userObj.tiktokUrl && userObj.tiktokUrl.trim() !== '') {
-            tiktokAnchor.href = userObj.tiktokUrl;
-            tiktokContainer.style.display = 'block';
-        } else {
-            tiktokContainer.style.display = 'none';
-        }
-
-        const levelsSection = document.getElementById('userModalLevelsSection');
-        const levelsList = document.getElementById('userModalLevelsList');
-        levelsList.innerHTML = "";
-
-        if (showCompletedLevels) {
-            levelsSection.style.display = 'block';
-            let completed = [];
-            (dbData.levels || []).forEach(lvl => {
-                let isVerifier = (lvl.verifier === userObj.name || (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2 === userObj.name));
-                let isVictor = (lvl.victors && lvl.victors.includes(userObj.name));
-                if (isVerifier || isVictor) {
-                    completed.push(lvl);
-                }
-            });
-
-            if (completed.length === 0) {
-                levelsList.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">${translations[currentLang].mUserNoLevels}</span>`;
-            } else {
-                completed.forEach(lvl => {
-                    const badge = document.createElement('div');
-                    badge.className = 'victor-badge';
-                    badge.innerHTML = `<span>#${lvl.rank} - ${lvl.name}</span>`;
-                    levelsList.appendChild(badge);
-                });
-            }
-        } else {
-            levelsSection.style.display = 'none';
-        }
-
-        document.getElementById('userDetailModal').style.display = 'flex';
-    };
-
-    window.closeUserDetailModal = () => { document.getElementById('userDetailModal').style.display = 'none'; };
-
-    window.openDetailModal = (lvl, thumbUrl) => {
-        currentSelectedLevelId = lvl.id;
-        const t = translations[currentLang];
-        document.getElementById('modalLevelTitle').innerText = lvl.name;
-        let verifierText = lvl.verifier;
-        if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
-            verifierText += ` & ${lvl.verifier2}`;
-        }
-        
-        let creatorDetails = `${t.byText} ${lvl.creator} • ${t.verifiedByText} ${verifierText}`;
-        if (lvl.usesNong) {
-            creatorDetails += ` • <span style="color:#ffcc00; font-weight:bold;">NONG</span>`;
-        }
-        document.getElementById('modalLevelCreators').innerHTML = creatorDetails;
-        document.getElementById('modalLevelIdText').innerText = `ID: ${lvl.levelId}`;
-        
-        const ytWrapper = document.getElementById('modalYoutubeContainerWrapper');
-        if (lvl.youtubeUrl && lvl.youtubeUrl.trim() !== '') {
-            ytWrapper.style.display = 'block';
-            document.getElementById('modalYoutubeAnchor').href = lvl.youtubeUrl;
-            document.getElementById('modalYoutubeThumbImg').src = thumbUrl || 'https://via.placeholder.com/480x360';
-        } else {
-            ytWrapper.style.display = 'none';
-        }
-
-        window.selectedLevelIdForCopy = lvl.levelId;
-
-        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
-        document.getElementById('addVictorBtn').style.display = isAdmin ? 'inline-block' : 'none';
-
-        renderModalVictors(lvl);
-        document.getElementById('levelDetailModal').style.display = 'flex';
-    };
-
-    function renderModalVictors(lvl) {
-        const victorsListContainer = document.getElementById('modalVictorsList');
-        victorsListContainer.innerHTML = "";
-        const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
-        const t = translations[currentLang];
-
-        if (!lvl.victors || lvl.victors.length === 0) {
-            victorsListContainer.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">${t.noVictorsYet}</span>`;
-            return;
-        }
-
-        lvl.victors.forEach(victorName => {
-            const badge = document.createElement('div');
-            badge.className = 'victor-badge';
-            badge.innerHTML = `
-                <span>${victorName}</span>
-                ${isAdmin ? `<span class="victor-del" onclick="removeVictor('${lvl.id}', '${victorName}')" title="Delete">×</span>` : ''}
-            `;
-            victorsListContainer.appendChild(badge);
-        });
-    }
-
-    window.openAddVictorPrompt = () => {
-        document.getElementById('victorNameInput').value = "";
-        document.getElementById('addVictorModal').style.display = 'flex';
-    };
-
-    window.closeAddVictorModal = () => { document.getElementById('addVictorModal').style.display = 'none'; };
-
-    window.handleSaveVictor = async (e) => {
-        e.preventDefault();
-        const victorName = document.getElementById('victorNameInput').value.trim();
-        if (!victorName || !currentSelectedLevelId) return;
-
-        let lvl = dbData.levels.find(l => l.id === currentSelectedLevelId);
-        if (lvl) {
-            if (!lvl.victors) lvl.victors = [];
-            if (!lvl.victors.includes(victorName)) {
-                lvl.victors.push(victorName);
-                const ok = await saveCloudData();
-                if (!ok) return;
-                renderModalVictors(lvl);
-                loadDataAndRender();
-            }
-        }
-        closeAddVictorModal();
-    };
-
-    window.removeVictor = async (levelId, victorName) => {
-        let lvl = dbData.levels.find(l => l.id === levelId);
-        if (lvl && lvl.victors) {
-            lvl.victors = lvl.victors.filter(v => v !== victorName);
-            const ok = await saveCloudData();
-            if (!ok) return;
-            renderModalVictors(lvl);
-            loadDataAndRender();
-        }
-    };
-
-    window.closeDetailModal = () => { document.getElementById('levelDetailModal').style.display = 'none'; };
-    window.copyLevelId = () => { navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => showPageAlert(translations[currentLang].idCopied)); };
-
-    document.getElementById('btnLangUS').classList.toggle('active', currentLang === 'en');
-    document.getElementById('btnLangES').classList.toggle('active', currentLang === 'es');
-
-    fetchCloudData();
-</script>
-</body>
-</html>
