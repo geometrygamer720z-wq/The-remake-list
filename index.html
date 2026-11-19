@@ -49,7 +49,10 @@
 
         .header-left { display: flex; flex-direction: column; gap: 4px; }
         .title-row { display: flex; align-items: center; gap: 15px; }
-        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent); }
+        h1 {
+            margin: 0; font-size: 1.5rem; letter-spacing: 2px; color: var(--accent);
+            cursor: pointer; user-select: none; -webkit-user-select: none;
+        }
 
         .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
@@ -96,7 +99,27 @@
 
         .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
 
-        .admin-action-bar { display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .top-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .admin-action-bar {
+            display: none;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .corner-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
         .lista-vertical {
             display: flex;
@@ -256,8 +279,8 @@
         </button>
 
         <div class="lang-group">
-            <button class="lang-btn active" id="btnLangUS" onclick="setLanguage('en')">US</button>
-            <button class="lang-btn" id="btnLangES" onclick="setLanguage('es')">ES</button>
+            <button class="lang-btn active" id="btnLangUS" onclick="setLanguage('en')">🇺🇸</button>
+            <button class="lang-btn" id="btnLangES" onclick="setLanguage('es')">🇪🇸</button>
         </div>
 
         <div id="authContainer">
@@ -267,9 +290,13 @@
 </header>
 
 <div class="container">
-    <div id="adminActionBar" class="admin-action-bar">
-        <button class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
-        <button class="btn" id="toggleViewBtn" onclick="toggleListViewMode()" style="background: #222; border: 1px solid var(--accent); color: var(--accent);">Vista: Vertical</button>
+    <div class="top-toolbar">
+        <div id="adminActionBar" class="admin-action-bar">
+            <button class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
+        </div>
+        <div class="corner-actions">
+            <button class="btn" id="toggleViewBtn" onclick="toggleListViewMode()" style="background: #222; border: 1px solid var(--accent); color: var(--accent);">View: Vertical</button>
+        </div>
     </div>
 
     <div id="listViewContainer"><div id="demonList" class="lista-vertical"></div></div>
@@ -278,6 +305,18 @@
 </div>
 
 <datalist id="accountsDatalist"></datalist>
+
+<div id="adminAuthModal" class="modal" style="z-index: 1100;">
+    <div class="modal-content" style="max-width: 360px;">
+        <span class="close-btn" onclick="closeAdminAuthModal()">&times;</span>
+        <h3 id="m-admin-title" style="margin-top:0; color:var(--accent); font-size: 1.2rem;">Admin Access</h3>
+        <form onsubmit="handleAdminLogin(event)">
+            <label id="m-admin-label" style="display:block; margin-bottom:5px; color:var(--text-muted); font-size:0.9rem;">Admin Password:</label>
+            <input type="password" id="adminPassInput" placeholder="Enter admin password" required>
+            <button type="submit" class="btn" id="m-admin-submit" style="width:100%; padding: 10px; margin-top: 8px;">Unlock Admin</button>
+        </form>
+    </div>
+</div>
 
 <div id="submitInfoModal" class="modal">
     <div class="modal-content" style="text-align: center;">
@@ -555,6 +594,11 @@
     const BIN_ID = "6af91a2effd5d16053c23e4f";
     const MASTER_KEY = "$2a$10$dtvPP5l9uDR5mU9t4wLGSuzZAfDsw.HrD/G0wW0mXruYItprbBDC6";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    const ADMIN_PASSWORD = "admin"; // Cambia esta contraseña por la que tú quieras
+
+    function showPageAlert(msg) {
+        window.alert(msg);
+    }
 
     let dbData = {
         levels: [],
@@ -577,8 +621,8 @@
             signIn: "Sign In",
             signOut: "Sign Out",
             addLevel: "+ Add Level",
-            viewVertical: "Vista: Vertical",
-            viewHorizontal: "Vista: Horizontal",
+            viewVertical: "View: Vertical",
+            viewHorizontal: "View: Horizontal",
             noLevels: "No levels added yet.",
             noPlayers: "No verifying players yet.",
             noPersons: "No registered persons yet.",
@@ -645,7 +689,22 @@
             mProfDelete: "Delete Account",
             mDelAccTitle: "Confirm Account Deletion",
             mDelAccDesc: "To delete your account permanently, enter your account password:",
-            mDelAccSubmit: "Confirm & Delete"
+            mDelAccSubmit: "Confirm & Delete",
+            mAdminTitle: "Admin Access",
+            mAdminLabel: "Admin Password:",
+            mAdminPH: "Enter admin password",
+            mAdminSubmit: "Unlock Admin",
+            adminEnabled: "Admin mode enabled!",
+            wrongAdminPass: "Incorrect admin password.",
+            noDiscordLink: "Discord link has not been configured by the admin yet.",
+            discordSaved: "Discord link updated and saved to the cloud for everyone!",
+            noTiktokLink: "TikTok link has not been configured by the admin yet.",
+            tiktokSaved: "TikTok link updated and saved to the cloud for everyone!",
+            wrongUserPass: "Incorrect password.",
+            delPersonConfirm: (u) => `Delete account for ${u}?`,
+            byText: "By",
+            verifiedByText: "Verified by",
+            noVictorsYet: "No victors yet."
         },
         es: {
             title: "LA REMAKE LIST",
@@ -723,7 +782,65 @@
             mProfDelete: "Eliminar Cuenta",
             mDelAccTitle: "Confirmar Eliminación de Cuenta",
             mDelAccDesc: "Para eliminar tu cuenta permanentemente, introduce la contraseña de tu cuenta:",
-            mDelAccSubmit: "Confirmar y Eliminar"
+            mDelAccSubmit: "Confirmar y Eliminar",
+            mAdminTitle: "Acceso de Admin",
+            mAdminLabel: "Contraseña de Admin:",
+            mAdminPH: "Ingresa la contraseña de admin",
+            mAdminSubmit: "Desbloquear Admin",
+            adminEnabled: "¡Modo admin activado!",
+            wrongAdminPass: "Contraseña de admin incorrecta.",
+            noDiscordLink: "El enlace de Discord aún no ha sido configurado por el administrador.",
+            discordSaved: "¡Enlace de Discord actualizado y guardado en la nube para todos!",
+            noTiktokLink: "El enlace de TikTok aún no ha sido configurado por el administrador.",
+            tiktokSaved: "¡Enlace de TikTok actualizado y guardado en la nube para todos!",
+            wrongUserPass: "Contraseña incorrecta.",
+            delPersonConfirm: (u) => `¿Eliminar la cuenta de ${u}?`,
+            byText: "Por",
+            verifiedByText: "Verificado por",
+            noVictorsYet: "No hay víctors aún."
+        }
+    };
+
+    let titleClickCount = 0;
+    let titleClickTimer = null;
+    document.getElementById('t-title').addEventListener('click', () => {
+        titleClickCount++;
+        clearTimeout(titleClickTimer);
+        titleClickTimer = setTimeout(() => {
+            titleClickCount = 0;
+        }, 500);
+
+        if (titleClickCount >= 3) {
+            titleClickCount = 0;
+            clearTimeout(titleClickTimer);
+            openAdminAuthModal();
+        }
+    });
+
+    window.openAdminAuthModal = () => {
+        document.getElementById('adminPassInput').value = "";
+        document.getElementById('adminAuthModal').style.display = 'flex';
+    };
+
+    window.closeAdminAuthModal = () => {
+        document.getElementById('adminAuthModal').style.display = 'none';
+    };
+
+    window.handleAdminLogin = (e) => {
+        e.preventDefault();
+        const pass = document.getElementById('adminPassInput').value;
+        const t = translations[currentLang];
+        if (pass === ADMIN_PASSWORD) {
+            localStorage.setItem('gd_is_admin', 'true');
+            closeAdminAuthModal();
+            checkLocalStorageSession();
+            loadDataAndRender();
+            showPageAlert(t.adminEnabled);
+        } else {
+            localStorage.setItem('gd_is_admin', 'false');
+            checkLocalStorageSession();
+            loadDataAndRender();
+            showPageAlert(t.wrongAdminPass);
         }
     };
 
@@ -749,6 +866,11 @@
         document.getElementById('tabPersonsBtn').innerText = t.tabPersons;
         document.getElementById('addLevelBtnText').innerText = t.addLevel;
         document.getElementById('toggleViewBtn').innerText = isHorizontalView ? t.viewHorizontal : t.viewVertical;
+
+        document.getElementById('m-admin-title').innerText = t.mAdminTitle;
+        document.getElementById('m-admin-label').innerText = t.mAdminLabel;
+        document.getElementById('adminPassInput').placeholder = t.mAdminPH;
+        document.getElementById('m-admin-submit').innerText = t.mAdminSubmit;
 
         document.getElementById('m-sub-title').innerText = t.mSubTitle;
         document.getElementById('m-sub-text').innerText = t.mSubText;
@@ -850,11 +972,16 @@
             if (res.ok) {
                 const json = await res.json();
                 if (json && json.record) {
-                    dbData = json.record;
+                    dbData = {
+                        levels: Array.isArray(json.record.levels) ? json.record.levels : [],
+                        discordUrl: json.record.discordUrl || "",
+                        tiktokUrl: json.record.tiktokUrl || "",
+                        accounts: (json.record.accounts && typeof json.record.accounts === 'object') ? json.record.accounts : {}
+                    };
                 }
             }
         } catch (err) {
-            console.error("Error al conectar con JSONBin:", err);
+            console.error("Error connecting to JSONBin:", err);
         }
         checkLocalStorageSession();
         updateAccountsDatalist();
@@ -863,6 +990,12 @@
     }
 
     async function saveCloudData() {
+        const bodyPayload = JSON.stringify(dbData);
+        if (bodyPayload.length > 95000) {
+            showPageAlert("Cloud sync error: image or data size exceeds the free cloud limit. Please use a smaller image.");
+            return false;
+        }
+
         try {
             const res = await fetch(JSONBIN_URL, {
                 method: 'PUT',
@@ -870,12 +1003,17 @@
                     'Content-Type': 'application/json',
                     'X-Master-Key': MASTER_KEY
                 },
-                body: JSON.stringify(dbData)
+                body: bodyPayload
             });
-            if (!res.ok) throw new Error("Error en la respuesta del servidor");
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`HTTP ${res.status}: ${errText}`);
+            }
+            return true;
         } catch (err) {
-            console.error("Error al guardar en JSONBin:", err);
-            alert("Error al sincronizar con la nube. Revisa tu conexión.");
+            console.error("Error saving to JSONBin:", err);
+            showPageAlert(`Cloud sync error. Please check your connection. (${err.message})`);
+            return false;
         }
     }
 
@@ -883,7 +1021,7 @@
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1571591905416839220/zOa0_eBCVqTjXDIcW1CZKjjRyan_CyWWZrzv9xQmIB83zaqDkcuoam78jnx6h56cULdr";
         
         let imageUrl = "";
-        if (imageSource === 'custom' && logoBase64) {
+        if (imageSource === 'custom' && logoBase64 && logoBase64.startsWith("http")) {
             imageUrl = logoBase64;
         } else if (youtubeUrl) {
             let ytId = extractYouTubeId(youtubeUrl);
@@ -899,9 +1037,7 @@
                     title: `#${rank} - ${levelName}`,
                     description: `👤 **Creator:** ${creatorName}\n🛡️ **Verifier:** ${verifierText}\n🆔 **GD ID:** \`${levelId}\`\n🎵 **NONG Song:** ${usesNong ? 'Yes' : 'No'}`,
                     color: 52428,
-                    image: {
-                        url: imageUrl
-                    },
+                    image: imageUrl ? { url: imageUrl } : undefined,
                     footer: {
                         text: "The Remake List - Geometry Dash"
                     }
@@ -971,7 +1107,7 @@
     function extractYouTubeId(url) {
         if (!url) return '';
         let match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-        return match ? match[1] : url;
+        return match ? match[1] : '';
     }
 
     function checkLocalStorageSession() {
@@ -981,7 +1117,7 @@
         const adminActionBar = document.getElementById('adminActionBar');
 
         if (adminActionBar) {
-            adminActionBar.style.display = 'flex';
+            adminActionBar.style.display = isAdmin ? 'flex' : 'none';
         }
 
         const t = translations[currentLang];
@@ -1009,6 +1145,7 @@
 
     window.handleDiscordClick = () => {
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        const t = translations[currentLang];
         if (isAdmin) {
             document.getElementById('discordUrlInput').value = dbData.discordUrl || '';
             document.getElementById('discordModal').style.display = 'flex';
@@ -1016,7 +1153,7 @@
             if (dbData.discordUrl) {
                 window.open(dbData.discordUrl, '_blank');
             } else {
-                alert(currentLang === 'es' ? "El enlace de Discord aún no ha sido configurado por el administrador." : "Discord link has not been configured by the admin yet.");
+                showPageAlert(t.noDiscordLink);
             }
         }
     };
@@ -1027,13 +1164,15 @@
         e.preventDefault();
         const url = document.getElementById('discordUrlInput').value.trim();
         dbData.discordUrl = url;
-        await saveCloudData();
+        const ok = await saveCloudData();
+        if (!ok) return;
         closeDiscordModal();
-        alert(currentLang === 'es' ? "¡Enlace de Discord actualizado y guardado en la nube para todos!" : "Discord link updated and saved to the cloud for everyone!");
+        showPageAlert(translations[currentLang].discordSaved);
     };
 
     window.handleTiktokClick = () => {
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        const t = translations[currentLang];
         if (isAdmin) {
             document.getElementById('tiktokUrlInput').value = dbData.tiktokUrl || '';
             document.getElementById('tiktokModal').style.display = 'flex';
@@ -1041,7 +1180,7 @@
             if (dbData.tiktokUrl) {
                 window.open(dbData.tiktokUrl, '_blank');
             } else {
-                alert(currentLang === 'es' ? "El enlace de TikTok aún no ha sido configurado por el administrador." : "TikTok link has not been configured by the admin yet.");
+                showPageAlert(t.noTiktokLink);
             }
         }
     };
@@ -1052,9 +1191,10 @@
         e.preventDefault();
         const url = document.getElementById('tiktokUrlInput').value.trim();
         dbData.tiktokUrl = url;
-        await saveCloudData();
+        const ok = await saveCloudData();
+        if (!ok) return;
         closeTiktokModal();
-        alert(currentLang === 'es' ? "¡Enlace de TikTok actualizado y guardado en la nube para todos!" : "TikTok link updated and saved to the cloud for everyone!");
+        showPageAlert(translations[currentLang].tiktokSaved);
     };
 
     window.openAuthModal = () => { document.getElementById('authModal').style.display = 'flex'; };
@@ -1066,6 +1206,7 @@
         const pass = document.getElementById('authPass').value;
         const tiktokUrl = document.getElementById('authTiktok').value.trim();
         const fileInput = document.getElementById('authImgFile');
+        const t = translations[currentLang];
 
         if (!dbData.accounts) dbData.accounts = {};
 
@@ -1080,14 +1221,15 @@
                         dbData.accounts[name].tiktokUrl = tiktokUrl;
                     }
                 } else {
-                    alert(currentLang === 'es' ? "Contraseña incorrecta." : "Incorrect password.");
+                    showPageAlert(t.wrongUserPass);
                     return;
                 }
             } else {
-                dbData.accounts[name] = { name, pass, tiktokUrl: tiktokUrl, imageBase64: imgBase64 };
+                dbData.accounts[name] = { name, pass, tiktokUrl: tiktokUrl, imageBase64: imgBase64 || '' };
                 localStorage.setItem('gd_active_user', name);
             }
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             window.location.reload();
         };
 
@@ -1095,6 +1237,8 @@
             const reader = new FileReader();
             reader.onload = async function(ev) { await processLogin(ev.target.result); };
             reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            await processLogin('');
         }
     };
 
@@ -1132,7 +1276,8 @@
             if (imgBase64) {
                 dbData.accounts[activeUser].imageBase64 = imgBase64;
             }
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             window.location.reload();
         };
 
@@ -1164,10 +1309,11 @@
         if (dbData.accounts[activeUser].pass === enteredPass) {
             delete dbData.accounts[activeUser];
             localStorage.removeItem('gd_active_user');
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             window.location.reload();
         } else {
-            alert(translations[currentLang].wrongPassword);
+            showPageAlert(translations[currentLang].wrongPassword);
             document.getElementById('confirmAccountPass').value = "";
         }
     };
@@ -1307,7 +1453,11 @@
             newLevel.logoBase64 = logo || '';
             if (!dbData.levels) dbData.levels = [];
             dbData.levels.push(newLevel);
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) {
+                dbData.levels.pop();
+                return;
+            }
 
             await sendDiscordWebhook(name, creator, rank, levelId, youtubeUrl, imageSource, newLevel.logoBase64, verifierText, usesNong);
 
@@ -1381,7 +1531,8 @@
             lvl.imageSource = imageSource;
             lvl.usesNong = usesNong;
 
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             window.location.reload();
         }
     };
@@ -1389,15 +1540,18 @@
     window.deleteLevel = async (id) => {
         if (confirm(translations[currentLang].delLevelConfirm)) {
             dbData.levels = dbData.levels.filter(l => l.id !== id);
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             window.location.reload();
         }
     };
 
     window.deleteRegisteredPerson = async (username) => {
-        if (confirm(currentLang === 'es' ? `¿Eliminar la cuenta de ${username}?` : `Delete account for ${username}?`)) {
+        const t = translations[currentLang];
+        if (confirm(t.delPersonConfirm(username))) {
             delete dbData.accounts[username];
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             window.location.reload();
         }
     };
@@ -1433,7 +1587,7 @@
                         ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
                         <div class="level-info">
                             <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                            <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
+                            <p class="level-creator">${t.byText} ${lvl.creator} • ${t.verifiedByText} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
                         </div>
                         <div class="level-card-bottom">
                             <div class="level-points">${points} pts</div>
@@ -1448,7 +1602,7 @@
                         ${thumbUrl ? `<img src="${thumbUrl}" class="thumbnail">` : ''}
                         <div class="level-info">
                             <h3 class="level-title"><span style="color:var(--accent);">#${lvl.rank}</span> ${lvl.name}</h3>
-                            <p class="level-creator">${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
+                            <p class="level-creator">${t.byText} ${lvl.creator} • ${t.verifiedByText} ${verifierText} ${lvl.is2p ? '(2P)' : ''} ${lvl.usesNong ? '• <span style="color:#ffcc00; font-weight:bold;">NONG</span>' : ''}</p>
                         </div>
                         <div class="level-points">${points} pts</div>
                         <div class="level-actions">
@@ -1587,13 +1741,14 @@
 
     window.openDetailModal = (lvl, thumbUrl) => {
         currentSelectedLevelId = lvl.id;
+        const t = translations[currentLang];
         document.getElementById('modalLevelTitle').innerText = lvl.name;
         let verifierText = lvl.verifier;
         if (lvl.is2p && lvl.verificationMode === 'duo' && lvl.verifier2) {
             verifierText += ` & ${lvl.verifier2}`;
         }
         
-        let creatorDetails = `${currentLang === 'es' ? 'Por' : 'By'} ${lvl.creator} • ${currentLang === 'es' ? 'Verificado por' : 'Verified by'} ${verifierText}`;
+        let creatorDetails = `${t.byText} ${lvl.creator} • ${t.verifiedByText} ${verifierText}`;
         if (lvl.usesNong) {
             creatorDetails += ` • <span style="color:#ffcc00; font-weight:bold;">NONG</span>`;
         }
@@ -1622,9 +1777,10 @@
         const victorsListContainer = document.getElementById('modalVictorsList');
         victorsListContainer.innerHTML = "";
         const isAdmin = localStorage.getItem('gd_is_admin') === 'true';
+        const t = translations[currentLang];
 
         if (!lvl.victors || lvl.victors.length === 0) {
-            victorsListContainer.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">${currentLang === 'es' ? 'No hay víctors aún.' : 'No victors yet.'}</span>`;
+            victorsListContainer.innerHTML = `<span style="color:var(--text-muted); font-size:0.85rem;">${t.noVictorsYet}</span>`;
             return;
         }
 
@@ -1656,7 +1812,8 @@
             if (!lvl.victors) lvl.victors = [];
             if (!lvl.victors.includes(victorName)) {
                 lvl.victors.push(victorName);
-                await saveCloudData();
+                const ok = await saveCloudData();
+                if (!ok) return;
                 renderModalVictors(lvl);
                 loadDataAndRender();
             }
@@ -1668,14 +1825,15 @@
         let lvl = dbData.levels.find(l => l.id === levelId);
         if (lvl && lvl.victors) {
             lvl.victors = lvl.victors.filter(v => v !== victorName);
-            await saveCloudData();
+            const ok = await saveCloudData();
+            if (!ok) return;
             renderModalVictors(lvl);
             loadDataAndRender();
         }
     };
 
     window.closeDetailModal = () => { document.getElementById('levelDetailModal').style.display = 'none'; };
-    window.copyLevelId = () => { navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => alert(translations[currentLang].idCopied)); };
+    window.copyLevelId = () => { navigator.clipboard.writeText(window.selectedLevelIdForCopy).then(() => showPageAlert(translations[currentLang].idCopied)); };
 
     document.getElementById('btnLangUS').classList.toggle('active', currentLang === 'en');
     document.getElementById('btnLangES').classList.toggle('active', currentLang === 'es');
