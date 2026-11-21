@@ -238,7 +238,7 @@
             margin-top: 10px;
         }
 
-        .player-card, .person-card {
+        .player-card {
             display: flex;
             align-items: center;
             background-color: var(--card-bg);
@@ -246,16 +246,18 @@
             padding: 12px 14px;
             border-radius: 10px;
             border-left: 4px solid var(--accent);
-            cursor: pointer;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .player-avatar, .person-avatar {
+        .player-avatar {
             width: 48px;
             height: 48px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 14px;
+            margin-right: 6px;
             background: #333;
+            flex-shrink: 0;
         }
 
         .player-rank {
@@ -263,13 +265,13 @@
             font-weight: bold;
             color: var(--accent);
             width: 35px;
-            margin-right: 8px;
         }
 
-        .player-info, .person-info { flex-grow: 1; }
-        .player-name, .person-name { margin: 0 0 3px 0; font-size: 1.1rem; font-weight: bold; }
-        .player-details, .person-details { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
-        .player-points { font-weight: bold; color: #00ffcc; font-size: 1.05rem; }
+        .player-info { flex-grow: 1; }
+        .player-name { margin: 0 0 3px 0; font-size: 1.1rem; font-weight: bold; }
+        .player-details { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+        .player-points { font-weight: bold; color: #00ffcc; font-size: 1.05rem; margin-right: 6px; }
+        .player-actions { display: flex; gap: 8px; align-items: center; }
 
         .modal {
             display: none;
@@ -312,24 +314,6 @@
             background: #0a0a0a;
             color: white;
             box-sizing: border-box;
-        }
-
-        .profile-preview {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #1c1c1c;
-            padding: 5px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .avatar-circle {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #333;
         }
 
         .modal-yt-thumb {
@@ -390,7 +374,6 @@
         <div class="nav-tabs">
             <button type="button" class="nav-tab-btn active" id="tabListBtn" onclick="switchTab('list')">List</button>
             <button type="button" class="nav-tab-btn" id="tabPlayersBtn" onclick="switchTab('players')">Players</button>
-            <button type="button" class="nav-tab-btn" id="tabPersonsBtn" onclick="switchTab('persons')">Persons</button>
         </div>
 
         <button type="button" class="social-btn submit-bg" onclick="openModal('submitInfoModal')" title="Submit Info">
@@ -409,17 +392,13 @@
             <button type="button" class="lang-btn active" id="btnLangUS" onclick="setLanguage('en')">🇺🇸</button>
             <button type="button" class="lang-btn" id="btnLangES" onclick="setLanguage('es')">🇪🇸</button>
         </div>
-
-        <div id="authContainer">
-            <button type="button" class="btn" id="loginBtn" onclick="openModal('authModal')">Sign In</button>
-        </div>
     </div>
 </header>
 
 <div class="container">
     <div class="top-toolbar">
         <div id="adminActionBar" class="admin-action-bar">
-            <button type="button" class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
+            <button type="button" class="btn" id="addLevelBtnText" onclick="openModal('addLevelModal')">+ Add Level</button>
         </div>
         <div class="corner-actions">
             <button type="button" class="btn" id="toggleViewBtn" onclick="toggleListViewMode()" style="background:#222; border:1px solid var(--accent); color:var(--accent);">View: Vertical</button>
@@ -428,10 +407,9 @@
 
     <div id="listViewContainer"><div id="demonList" class="lista-vertical"></div></div>
     <div id="playersViewContainer" style="display:none;"><div id="playersList"></div></div>
-    <div id="personsViewContainer" style="display:none;"><div id="personsList"></div></div>
 </div>
 
-<datalist id="accountsDatalist"></datalist>
+<datalist id="playersDatalist"></datalist>
 
 <!-- Admin Modal -->
 <div id="adminAuthModal" class="modal">
@@ -490,7 +468,7 @@
         <form onsubmit="handleAddNewLevel(event)">
             <input type="text" id="lvlName" placeholder="Level Name" required>
             <input type="text" id="lvlCreator" placeholder="Creator" required>
-            <input type="text" id="lvlVerifier" list="accountsDatalist" placeholder="Verifier" required>
+            <input type="text" id="lvlVerifier" list="playersDatalist" placeholder="Verifier" required>
             <input type="text" id="lvlId" placeholder="GD Level ID" required>
             <input type="number" id="lvlRank" placeholder="Rank (Ex: 1)" required>
             <input type="url" id="lvlYoutube" placeholder="YouTube URL" required>
@@ -513,7 +491,7 @@
             <input type="hidden" id="editLvlIdKey">
             <input type="text" id="editLvlName" required>
             <input type="text" id="editLvlCreator" required>
-            <input type="text" id="editLvlVerifier" list="accountsDatalist" required>
+            <input type="text" id="editLvlVerifier" list="playersDatalist" required>
             <input type="text" id="editLvlCodeId" required>
             <input type="number" id="editLvlRank" required>
             <input type="url" id="editLvlYoutube" required>
@@ -526,39 +504,17 @@
     </div>
 </div>
 
-<!-- Auth Modal -->
-<div id="authModal" class="modal">
+<!-- Player Photo Only Modal (Admin) -->
+<div id="editPlayerPhotoModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeModal('authModal')">&times;</span>
-        <h2 id="m-auth-title" style="margin-top:0;">Sign In / Register</h2>
-        <form onsubmit="handleAuthSubmit(event)">
-            <label id="m-auth-user">GD Username:</label>
-            <input type="text" id="authName" required>
-            <label id="m-auth-pass">Password:</label>
-            <input type="password" id="authPass" required>
-            <label id="m-auth-tiktok">TikTok URL (optional):</label>
-            <input type="url" id="authTiktok">
-            <label id="m-auth-img">Profile Image (optional):</label>
-            <input type="file" id="authImgFile" accept="image/*">
-            <button type="submit" class="btn" id="m-auth-submit" style="width:100%;">Continue</button>
-        </form>
-    </div>
-</div>
-
-<!-- Profile Modal -->
-<div id="profileModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal('profileModal')">&times;</span>
-        <h2 id="m-prof-title" style="margin-top:0;">Edit Profile</h2>
-        <form onsubmit="handleProfileUpdate(event)">
-            <label id="m-prof-pass">New Password (optional):</label>
-            <input type="password" id="profilePass">
-            <label id="m-prof-tiktok">TikTok URL:</label>
-            <input type="url" id="profileTiktok">
-            <label id="m-prof-img">Change Profile Image:</label>
-            <input type="file" id="profileImgFile" accept="image/*">
-            <button type="submit" class="btn" id="m-prof-update" style="width:100%; margin-bottom:8px;">Update Profile</button>
-            <button type="button" class="btn btn-danger" id="m-prof-delete" onclick="deleteOwnAccount()" style="width:100%;">Delete Account</button>
+        <span class="close-btn" onclick="closeModal('editPlayerPhotoModal')">&times;</span>
+        <h3 id="m-player-photo-title" style="margin-top:0; color:var(--accent);">Change Player Photo</h3>
+        <form onsubmit="handleSavePlayerPhoto(event)">
+            <input type="hidden" id="editPlayerNameKey">
+            <p id="editPlayerNameDisplay" style="margin:0 0 12px 0; font-weight:bold;"></p>
+            <label id="m-player-photo-label">New Photo:</label>
+            <input type="file" id="playerPhotoFile" accept="image/*" required>
+            <button type="submit" class="btn" id="m-player-photo-save" style="width:100%;">Save Photo</button>
         </form>
     </div>
 </div>
@@ -592,7 +548,7 @@
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const ADMIN_PASSWORD = "admin";
 
-    let dbData = { levels: [], discordUrl: "", tiktokUrl: "", accounts: {} };
+    let dbData = { levels: [], discordUrl: "", tiktokUrl: "", playerPhotos: {} };
     let currentTab = "list";
     let currentLang = localStorage.getItem("gd_lang") || "en";
     let isHorizontalView = false;
@@ -601,23 +557,31 @@
     const i18n = {
         en: {
             title: "THE REMAKE LIST",
-            tabList: "List", tabPlayers: "Players", tabPersons: "Persons",
-            signIn: "Sign In", signOut: "Sign Out",
+            tabList: "List", tabPlayers: "Players",
             addLevel: "+ Add Level",
             viewVertical: "View: Vertical", viewHorizontal: "View: Horizontal",
-            noLevels: "No levels added yet.", noPlayers: "No players yet.", noPersons: "No persons yet.",
+            noLevels: "No levels added yet.", noPlayers: "No players yet.",
             by: "By", verifiedBy: "Verified by", edit: "Edit", del: "Delete",
-            copied: "ID copied!", adminOn: "Admin mode enabled!", adminOff: "Wrong password."
+            copied: "ID copied!", adminOn: "Admin mode enabled!", adminOff: "Wrong password.",
+            changePhotoTitle: "Change Player Photo",
+            newPhotoLabel: "New Photo:",
+            savePhoto: "Save Photo",
+            delConfirm1: (name) => `Delete ${name} from players and level records? (Step 1/2)`,
+            delConfirm2: (name) => `Are you 100% sure you want to permanently remove ${name}? (Step 2/2)`
         },
         es: {
             title: "LA REMAKE LIST",
-            tabList: "Lista", tabPlayers: "Jugadores", tabPersons: "Personas",
-            signIn: "Iniciar sesión", signOut: "Cerrar sesión",
+            tabList: "Lista", tabPlayers: "Jugadores",
             addLevel: "+ Añadir Nivel",
             viewVertical: "Vista: Vertical", viewHorizontal: "Vista: Horizontal",
-            noLevels: "No hay niveles añadidos.", noPlayers: "No hay jugadores.", noPersons: "No hay personas.",
+            noLevels: "No hay niveles añadidos.", noPlayers: "No hay jugadores.",
             by: "Por", verifiedBy: "Verificado por", edit: "Editar", del: "Eliminar",
-            copied: "¡ID copiado!", adminOn: "¡Modo admin activado!", adminOff: "Contraseña incorrecta."
+            copied: "¡ID copiado!", adminOn: "¡Modo admin activado!", adminOff: "Contraseña incorrecta.",
+            changePhotoTitle: "Cambiar Foto del Player",
+            newPhotoLabel: "Nueva Foto:",
+            savePhoto: "Guardar Foto",
+            delConfirm1: (name) => `¿Eliminar a ${name} de los players y registros de niveles? (Paso 1/2)`,
+            delConfirm2: (name) => `¿Estás seguro de borrar permanentemente a ${name}? (Paso 2/2)`
         }
     };
 
@@ -674,10 +638,8 @@
         currentTab = tab;
         document.getElementById("tabListBtn").classList.toggle("active", tab === "list");
         document.getElementById("tabPlayersBtn").classList.toggle("active", tab === "players");
-        document.getElementById("tabPersonsBtn").classList.toggle("active", tab === "persons");
         document.getElementById("listViewContainer").style.display = tab === "list" ? "block" : "none";
         document.getElementById("playersViewContainer").style.display = tab === "players" ? "block" : "none";
-        document.getElementById("personsViewContainer").style.display = tab === "persons" ? "block" : "none";
         document.getElementById("toggleViewBtn").style.display = tab === "list" ? "inline-block" : "none";
         renderLists();
     }
@@ -703,6 +665,15 @@
         });
     }
 
+    function sanitizeBinData(raw) {
+        return {
+            levels: Array.isArray(raw?.levels) ? raw.levels : [],
+            discordUrl: raw?.discordUrl || "",
+            tiktokUrl: raw?.tiktokUrl || "",
+            playerPhotos: raw?.playerPhotos && typeof raw.playerPhotos === "object" ? raw.playerPhotos : {}
+        };
+    }
+
     async function fetchCloudData() {
         try {
             const res = await fetch(`${JSONBIN_URL}/latest`, {
@@ -711,12 +682,7 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.record) {
-                    dbData = {
-                        levels: Array.isArray(data.record.levels) ? data.record.levels : [],
-                        discordUrl: data.record.discordUrl || "",
-                        tiktokUrl: data.record.tiktokUrl || "",
-                        accounts: data.record.accounts && typeof data.record.accounts === "object" ? data.record.accounts : {}
-                    };
+                    dbData = sanitizeBinData(data.record);
                 }
             }
         } catch (err) {
@@ -726,7 +692,9 @@
     }
 
     async function saveCloudData() {
-        const payload = JSON.stringify(dbData);
+        const cleanData = sanitizeBinData(dbData);
+        dbData = cleanData;
+        const payload = JSON.stringify(cleanData);
         if (payload.length > 95000) {
             alert("Cloud sync error: image or data size exceeds the free cloud limit.");
             return false;
@@ -751,7 +719,6 @@
     function refreshUI() {
         const t = i18n[currentLang];
         const isAdmin = localStorage.getItem("gd_is_admin") === "true";
-        const activeUser = localStorage.getItem("gd_active_user");
 
         document.documentElement.lang = currentLang;
         document.getElementById("btnLangUS").classList.toggle("active", currentLang === "en");
@@ -760,36 +727,40 @@
         document.getElementById("t-title").innerText = t.title;
         document.getElementById("tabListBtn").innerText = t.tabList;
         document.getElementById("tabPlayersBtn").innerText = t.tabPlayers;
-        document.getElementById("tabPersonsBtn").innerText = t.tabPersons;
         document.getElementById("addLevelBtnText").innerText = t.addLevel;
         document.getElementById("toggleViewBtn").innerText = isHorizontalView ? t.viewHorizontal : t.viewVertical;
         document.getElementById("adminActionBar").style.display = isAdmin ? "flex" : "none";
 
-        const authContainer = document.getElementById("authContainer");
-        if (activeUser && dbData.accounts && dbData.accounts[activeUser]) {
-            const acc = dbData.accounts[activeUser];
-            authContainer.innerHTML = `
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="profile-preview" onclick="openProfileModal()">
-                        <img src="${acc.imageBase64 || 'https://via.placeholder.com/30'}" class="avatar-circle">
-                        <span style="font-size:0.85rem; font-weight:bold;">${acc.name}</span>
-                    </div>
-                    <button type="button" class="btn btn-danger" style="padding:6px 10px; font-size:0.8rem;" onclick="logoutUser()">${t.signOut}</button>
-                </div>
-            `;
-        } else {
-            authContainer.innerHTML = `<button type="button" class="btn" onclick="openModal('authModal')">${t.signIn}</button>`;
-        }
+        document.getElementById("m-player-photo-title").innerText = t.changePhotoTitle;
+        document.getElementById("m-player-photo-label").innerText = t.newPhotoLabel;
+        document.getElementById("m-player-photo-save").innerText = t.savePhoto;
 
-        const dl = document.getElementById("accountsDatalist");
+        const players = getPlayersFromLevels(dbData.levels || []);
+        const dl = document.getElementById("playersDatalist");
         dl.innerHTML = "";
-        Object.keys(dbData.accounts || {}).forEach((u) => {
+        players.forEach((p) => {
             const opt = document.createElement("option");
-            opt.value = u;
+            opt.value = p.name;
             dl.appendChild(opt);
         });
 
         renderLists();
+    }
+
+    function getPlayersFromLevels(levels) {
+        const pointsMap = {};
+        levels.forEach((lvl) => {
+            const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
+            if (lvl.verifier) {
+                pointsMap[lvl.verifier] = (pointsMap[lvl.verifier] || 0) + pts;
+            }
+            (lvl.victors || []).forEach((v) => {
+                if (v) pointsMap[v] = (pointsMap[v] || 0) + Math.round(pts * 0.5);
+            });
+        });
+        return Object.keys(pointsMap)
+            .map((name) => ({ name, points: pointsMap[name] }))
+            .sort((a, b) => b.points - a.points);
     }
 
     function renderLists() {
@@ -828,49 +799,86 @@
 
         const playersEl = document.getElementById("playersList");
         playersEl.innerHTML = "";
-        const pointsMap = {};
-        levels.forEach((lvl) => {
-            const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
-            if (lvl.verifier) pointsMap[lvl.verifier] = (pointsMap[lvl.verifier] || 0) + pts;
-            (lvl.victors || []).forEach((v) => {
-                pointsMap[v] = (pointsMap[v] || 0) + Math.round(pts * 0.5);
-            });
-        });
-        const players = Object.keys(pointsMap).map((name) => ({ name, points: pointsMap[name] })).sort((a, b) => b.points - a.points);
+        const players = getPlayersFromLevels(levels);
         playersEl.innerHTML = players.length ? "" : `<p style="text-align:center; color:var(--text-muted);">${t.noPlayers}</p>`;
+
         players.forEach((p, idx) => {
-            const acc = (dbData.accounts || {})[p.name] || {};
+            const photo = (dbData.playerPhotos && dbData.playerPhotos[p.name]) || "https://via.placeholder.com/48";
             const row = document.createElement("div");
             row.className = "player-card";
             row.innerHTML = `
                 <div class="player-rank">#${idx + 1}</div>
-                <img src="${acc.imageBase64 || 'https://via.placeholder.com/48'}" class="player-avatar">
+                <img src="${photo}" class="player-avatar" onerror="this.src='https://via.placeholder.com/48'">
                 <div class="player-info">
                     <h3 class="player-name">${p.name}</h3>
                     <p class="player-details">${p.points} pts</p>
                 </div>
                 <div class="player-points">${p.points} pts</div>
+                ${isAdmin ? `
+                    <div class="player-actions">
+                        <button type="button" class="btn btn-edit" onclick="openEditPlayerPhoto('${encodeURIComponent(p.name)}')">${t.edit}</button>
+                        <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deletePlayerTwice('${encodeURIComponent(p.name)}')">${t.del}</button>
+                    </div>
+                ` : ""}
             `;
             playersEl.appendChild(row);
         });
+    }
 
-        const personsEl = document.getElementById("personsList");
-        personsEl.innerHTML = "";
-        const accounts = Object.values(dbData.accounts || {});
-        personsEl.innerHTML = accounts.length ? "" : `<p style="text-align:center; color:var(--text-muted);">${t.noPersons}</p>`;
-        accounts.forEach((acc) => {
-            const row = document.createElement("div");
-            row.className = "person-card";
-            row.innerHTML = `
-                <img src="${acc.imageBase64 || 'https://via.placeholder.com/48'}" class="person-avatar">
-                <div class="person-info">
-                    <h3 class="person-name">${acc.name}</h3>
-                    <p class="person-details">${acc.tiktokUrl || ""}</p>
-                </div>
-                ${isAdmin ? `<button type="button" class="btn btn-danger" style="padding:6px 10px; font-size:0.8rem;" onclick="deleteAccountByAdmin('${acc.name}')">${t.del}</button>` : ""}
-            `;
-            personsEl.appendChild(row);
-        });
+    function openEditPlayerPhoto(encodedName) {
+        if (localStorage.getItem("gd_is_admin") !== "true") return;
+        const name = decodeURIComponent(encodedName);
+        document.getElementById("editPlayerNameKey").value = name;
+        document.getElementById("editPlayerNameDisplay").innerText = name;
+        document.getElementById("playerPhotoFile").value = "";
+        openModal("editPlayerPhotoModal");
+    }
+
+    async function handleSavePlayerPhoto(e) {
+        e.preventDefault();
+        if (localStorage.getItem("gd_is_admin") !== "true") return;
+        const name = document.getElementById("editPlayerNameKey").value;
+        const file = document.getElementById("playerPhotoFile").files[0];
+        if (!name || !file) return;
+
+        const base64 = await fileToBase64(file);
+        if (!base64) return;
+
+        const prevPhoto = dbData.playerPhotos[name];
+        dbData.playerPhotos[name] = base64;
+        if (await saveCloudData()) {
+            closeModal("editPlayerPhotoModal");
+            refreshUI();
+        } else {
+            if (prevPhoto) dbData.playerPhotos[name] = prevPhoto;
+            else delete dbData.playerPhotos[name];
+        }
+    }
+
+    async function deletePlayerTwice(encodedName) {
+        if (localStorage.getItem("gd_is_admin") !== "true") return;
+        const name = decodeURIComponent(encodedName);
+        const t = i18n[currentLang];
+
+        if (!confirm(t.delConfirm1(name))) return;
+        if (!confirm(t.delConfirm2(name))) return;
+
+        const prevLevels = JSON.parse(JSON.stringify(dbData.levels || []));
+        const prevPhoto = dbData.playerPhotos[name];
+
+        dbData.levels = (dbData.levels || []).map((lvl) => ({
+            ...lvl,
+            verifier: lvl.verifier === name ? "" : lvl.verifier,
+            victors: Array.isArray(lvl.victors) ? lvl.victors.filter((v) => v !== name) : []
+        }));
+        delete dbData.playerPhotos[name];
+
+        if (await saveCloudData()) {
+            refreshUI();
+        } else {
+            dbData.levels = prevLevels;
+            if (prevPhoto) dbData.playerPhotos[name] = prevPhoto;
+        }
     }
 
     function handleDiscordClick() {
@@ -902,8 +910,6 @@
         dbData.tiktokUrl = document.getElementById("tiktokUrlInput").value.trim();
         if (await saveCloudData()) { closeModal("tiktokModal"); refreshUI(); }
     }
-
-    function openAddLevelModal() { openModal("addLevelModal"); }
 
     async function handleAddNewLevel(e) {
         e.preventDefault();
@@ -961,75 +967,6 @@
         const prev = [...dbData.levels];
         dbData.levels = dbData.levels.filter((x) => x.id !== id);
         if (await saveCloudData()) { refreshUI(); } else { dbData.levels = prev; }
-    }
-
-    async function handleAuthSubmit(e) {
-        e.preventDefault();
-        const name = document.getElementById("authName").value.trim();
-        const pass = document.getElementById("authPass").value;
-        const tiktokUrl = document.getElementById("authTiktok").value.trim();
-        const img = await fileToBase64(document.getElementById("authImgFile").files[0]);
-
-        if (dbData.accounts[name]) {
-            if (dbData.accounts[name].pass !== pass) {
-                alert("Incorrect password.");
-                return;
-            }
-            if (img) dbData.accounts[name].imageBase64 = img;
-            if (tiktokUrl) dbData.accounts[name].tiktokUrl = tiktokUrl;
-        } else {
-            dbData.accounts[name] = { name, pass, tiktokUrl, imageBase64: img };
-        }
-
-        localStorage.setItem("gd_active_user", name);
-        if (await saveCloudData()) {
-            e.target.reset();
-            closeModal("authModal");
-            refreshUI();
-        }
-    }
-
-    function logoutUser() {
-        localStorage.removeItem("gd_active_user");
-        refreshUI();
-    }
-
-    function openProfileModal() {
-        const u = localStorage.getItem("gd_active_user");
-        const acc = dbData.accounts[u];
-        if (!acc) return;
-        document.getElementById("profilePass").value = "";
-        document.getElementById("profileTiktok").value = acc.tiktokUrl || "";
-        openModal("profileModal");
-    }
-
-    async function handleProfileUpdate(e) {
-        e.preventDefault();
-        const u = localStorage.getItem("gd_active_user");
-        const acc = dbData.accounts[u];
-        if (!acc) return;
-        const newPass = document.getElementById("profilePass").value;
-        const newTiktok = document.getElementById("profileTiktok").value.trim();
-        const img = await fileToBase64(document.getElementById("profileImgFile").files[0]);
-        if (newPass) acc.pass = newPass;
-        acc.tiktokUrl = newTiktok;
-        if (img) acc.imageBase64 = img;
-        if (await saveCloudData()) { closeModal("profileModal"); refreshUI(); }
-    }
-
-    async function deleteOwnAccount() {
-        const u = localStorage.getItem("gd_active_user");
-        if (!u || !dbData.accounts[u]) return;
-        const backup = dbData.accounts[u];
-        delete dbData.accounts[u];
-        localStorage.removeItem("gd_active_user");
-        if (await saveCloudData()) { closeModal("profileModal"); refreshUI(); } else { dbData.accounts[u] = backup; }
-    }
-
-    async function deleteAccountByAdmin(username) {
-        const backup = dbData.accounts[username];
-        delete dbData.accounts[username];
-        if (await saveCloudData()) { refreshUI(); } else { dbData.accounts[username] = backup; }
     }
 
     function openLevelDetail(lvl, thumb) {
