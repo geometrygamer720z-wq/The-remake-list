@@ -248,6 +248,13 @@
             border-left: 4px solid var(--accent);
             gap: 10px;
             flex-wrap: wrap;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+
+        .player-card:hover {
+            transform: translateY(-1px);
+            border-left-color: #00ffcc;
         }
 
         .player-avatar {
@@ -272,6 +279,96 @@
         .player-details { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
         .player-points { font-weight: bold; color: #00ffcc; font-size: 1.05rem; margin-right: 6px; }
         .player-actions { display: flex; gap: 8px; align-items: center; }
+
+        /* Modal de detalle de Player */
+        .player-profile-avatar {
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            background: #222;
+            display: block;
+            margin: 0 auto 12px auto;
+        }
+
+        .player-completed-list {
+            text-align: left;
+            margin-top: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .completed-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 4px;
+            border-bottom: 1px solid #282828;
+            font-size: 0.9rem;
+            gap: 8px;
+        }
+
+        .completed-item:last-child {
+            border-bottom: none;
+        }
+
+        .completed-tag {
+            font-size: 0.75rem;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-weight: bold;
+            background: rgba(0, 210, 255, 0.16);
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        /* Selector rápido de Verifier */
+        .verifier-picker-box {
+            background: #121212;
+            border: 1px solid #2b2b2b;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .verifier-quick-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .verifier-quick-row select {
+            margin: 0;
+            padding: 7px 10px;
+            font-size: 0.88rem;
+        }
+
+        .verifier-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 84px;
+            overflow-y: auto;
+        }
+
+        .verifier-chip {
+            background: #1e1e1e;
+            color: #e5e5e5;
+            border: 1px solid #3b3b3b;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+
+        .verifier-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
         .modal {
             display: none;
@@ -398,7 +495,7 @@
 <div class="container">
     <div class="top-toolbar">
         <div id="adminActionBar" class="admin-action-bar">
-            <button type="button" class="btn" id="addLevelBtnText" onclick="openModal('addLevelModal')">+ Add Level</button>
+            <button type="button" class="btn" id="addLevelBtnText" onclick="openAddLevelModal()">+ Add Level</button>
         </div>
         <div class="corner-actions">
             <button type="button" class="btn" id="toggleViewBtn" onclick="toggleListViewMode()" style="background:#222; border:1px solid var(--accent); color:var(--accent);">View: Vertical</button>
@@ -408,8 +505,6 @@
     <div id="listViewContainer"><div id="demonList" class="lista-vertical"></div></div>
     <div id="playersViewContainer" style="display:none;"><div id="playersList"></div></div>
 </div>
-
-<datalist id="playersDatalist"></datalist>
 
 <!-- Admin Modal -->
 <div id="adminAuthModal" class="modal">
@@ -468,7 +563,18 @@
         <form onsubmit="handleAddNewLevel(event)">
             <input type="text" id="lvlName" placeholder="Level Name" required>
             <input type="text" id="lvlCreator" placeholder="Creator" required>
-            <input type="text" id="lvlVerifier" list="playersDatalist" placeholder="Verifier" required>
+
+            <label id="m-add-verifier-label" style="font-size:0.88rem; color:#ccc;">Verifier (pick existing or type new)</label>
+            <input type="text" id="lvlVerifier" placeholder="Verifier name..." oninput="filterVerifierQuickList('add')" required>
+            <div class="verifier-picker-box">
+                <div class="verifier-quick-row">
+                    <select id="addVerifierSelect" onchange="pickVerifierFromSelect('add')">
+                        <option value="">-- Quick pick player --</option>
+                    </select>
+                </div>
+                <div id="addVerifierChips" class="verifier-chips"></div>
+            </div>
+
             <input type="text" id="lvlId" placeholder="GD Level ID" required>
             <input type="number" id="lvlRank" placeholder="Rank (Ex: 1)" required>
             <input type="url" id="lvlYoutube" placeholder="YouTube URL" required>
@@ -491,7 +597,18 @@
             <input type="hidden" id="editLvlIdKey">
             <input type="text" id="editLvlName" required>
             <input type="text" id="editLvlCreator" required>
-            <input type="text" id="editLvlVerifier" list="playersDatalist" required>
+
+            <label id="m-edit-verifier-label" style="font-size:0.88rem; color:#ccc;">Verifier (pick existing or type new)</label>
+            <input type="text" id="editLvlVerifier" oninput="filterVerifierQuickList('edit')" required>
+            <div class="verifier-picker-box">
+                <div class="verifier-quick-row">
+                    <select id="editVerifierSelect" onchange="pickVerifierFromSelect('edit')">
+                        <option value="">-- Quick pick player --</option>
+                    </select>
+                </div>
+                <div id="editVerifierChips" class="verifier-chips"></div>
+            </div>
+
             <input type="text" id="editLvlCodeId" required>
             <input type="number" id="editLvlRank" required>
             <input type="url" id="editLvlYoutube" required>
@@ -516,6 +633,21 @@
             <input type="file" id="playerPhotoFile" accept="image/*" required>
             <button type="submit" class="btn" id="m-player-photo-save" style="width:100%;">Save Photo</button>
         </form>
+    </div>
+</div>
+
+<!-- Player Detail Modal -->
+<div id="playerDetailModal" class="modal">
+    <div class="modal-content" style="text-align:center;">
+        <span class="close-btn" onclick="closeModal('playerDetailModal')">&times;</span>
+        <img id="detailPlayerAvatar" src="" class="player-profile-avatar" alt="Player Avatar">
+        <h3 id="detailPlayerName" style="margin:0 0 4px 0; color:var(--accent); font-size:1.35rem;"></h3>
+        <p id="detailPlayerMeta" style="margin:0 0 10px 0; color:var(--text-muted); font-size:0.9rem;"></p>
+
+        <div class="player-completed-list">
+            <div id="detailCompletedTitle" style="font-weight:bold; color:var(--accent); margin-bottom:6px; font-size:0.95rem;">Completed Levels</div>
+            <div id="detailCompletedLevels"></div>
+        </div>
     </div>
 </div>
 
@@ -547,6 +679,7 @@
     const MASTER_KEY = "$2a$10$dtvPP5l9uDR5mU9t4wLGSuzZAfDsw.HrD/G0wW0mXruYItprbBDC6";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const ADMIN_PASSWORD = "admin";
+    const DEFAULT_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="#1e242b"/><circle cx="60" cy="46" r="22" fill="#4f6d8a"/><ellipse cx="60" cy="96" rx="34" ry="22" fill="#4f6d8a"/></svg>`);
 
     let dbData = { levels: [], discordUrl: "", tiktokUrl: "", playerPhotos: {} };
     let currentTab = "list";
@@ -566,6 +699,12 @@
             changePhotoTitle: "Change Player Photo",
             newPhotoLabel: "New Photo:",
             savePhoto: "Save Photo",
+            verifierLabel: "Verifier (pick existing or type new)",
+            quickPickPlaceholder: "-- Quick pick player --",
+            completedLevelsTitle: "Completed Levels",
+            noCompletedLevels: "No completed levels recorded yet.",
+            roleVerifier: "Verifier",
+            roleVictor: "Victor",
             delConfirm1: (name) => `Delete ${name} from players and level records? (Step 1/2)`,
             delConfirm2: (name) => `Are you 100% sure you want to permanently remove ${name}? (Step 2/2)`
         },
@@ -580,6 +719,12 @@
             changePhotoTitle: "Cambiar Foto del Player",
             newPhotoLabel: "Nueva Foto:",
             savePhoto: "Guardar Foto",
+            verifierLabel: "Verificador (elige uno existente o escribe uno nuevo)",
+            quickPickPlaceholder: "-- Selección rápida de player --",
+            completedLevelsTitle: "Niveles completados",
+            noCompletedLevels: "Aún no tiene niveles completados registrados.",
+            roleVerifier: "Verificador",
+            roleVictor: "Victor",
             delConfirm1: (name) => `¿Eliminar a ${name} de los players y registros de niveles? (Paso 1/2)`,
             delConfirm2: (name) => `¿Estás seguro de borrar permanentemente a ${name}? (Paso 2/2)`
         }
@@ -612,6 +757,11 @@
 
     function openModal(id) { document.getElementById(id).style.display = "flex"; }
     function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+    function openAddLevelModal() {
+        populateVerifierPickers("add");
+        openModal("addLevelModal");
+    }
 
     function handleAdminLogin(e) {
         e.preventDefault();
@@ -716,6 +866,117 @@
         }
     }
 
+    function getAllKnownPlayerNames() {
+        const names = new Set();
+        (dbData.levels || []).forEach((lvl) => {
+            if (lvl.verifier) names.add(lvl.verifier.trim());
+            (lvl.victors || []).forEach((v) => {
+                if (v) names.add(v.trim());
+            });
+        });
+        Object.keys(dbData.playerPhotos || {}).forEach((n) => {
+            if (n) names.add(n.trim());
+        });
+        return Array.from(names).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    }
+
+    function populateVerifierPickers(mode) {
+        const t = i18n[currentLang];
+        const isAdd = mode === "add";
+        const inputEl = document.getElementById(isAdd ? "lvlVerifier" : "editLvlVerifier");
+        const selectEl = document.getElementById(isAdd ? "addVerifierSelect" : "editVerifierSelect");
+        const chipsEl = document.getElementById(isAdd ? "addVerifierChips" : "editVerifierChips");
+        if (!inputEl || !selectEl || !chipsEl) return;
+
+        const query = (inputEl.value || "").trim().toLowerCase();
+        const allNames = getAllKnownPlayerNames();
+        const filtered = query
+            ? allNames.filter((name) => name.toLowerCase().includes(query))
+            : allNames;
+
+        const currentVal = inputEl.value.trim();
+        selectEl.innerHTML = `<option value="">${t.quickPickPlaceholder}</option>`;
+        allNames.forEach((name) => {
+            const opt = document.createElement("option");
+            opt.value = name;
+            opt.textContent = name;
+            if (name === currentVal) opt.selected = true;
+            selectEl.appendChild(opt);
+        });
+
+        chipsEl.innerHTML = "";
+        filtered.slice(0, 12).forEach((name) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "verifier-chip";
+            chip.textContent = name;
+            chip.onclick = () => {
+                inputEl.value = name;
+                selectEl.value = name;
+            };
+            chipsEl.appendChild(chip);
+        });
+    }
+
+    function filterVerifierQuickList(mode) {
+        populateVerifierPickers(mode);
+    }
+
+    function pickVerifierFromSelect(mode) {
+        const isAdd = mode === "add";
+        const selectEl = document.getElementById(isAdd ? "addVerifierSelect" : "editVerifierSelect");
+        const inputEl = document.getElementById(isAdd ? "lvlVerifier" : "editLvlVerifier");
+        if (selectEl && inputEl && selectEl.value) {
+            inputEl.value = selectEl.value;
+        }
+    }
+
+    function getCompletedLevelsForPlayer(playerName, levels) {
+        const sorted = [...(levels || [])].sort((a, b) => a.rank - b.rank);
+        const completed = [];
+        sorted.forEach((lvl) => {
+            const isVerifier = lvl.verifier === playerName;
+            const isVictor = Array.isArray(lvl.victors) && lvl.victors.includes(playerName);
+            if (isVerifier || isVictor) {
+                completed.push({
+                    name: lvl.name,
+                    rank: lvl.rank,
+                    role: isVerifier ? i18n[currentLang].roleVerifier : i18n[currentLang].roleVictor
+                });
+            }
+        });
+        return completed;
+    }
+
+    function openPlayerDetail(encodedName, rankPosition, points) {
+        const name = decodeURIComponent(encodedName);
+        const t = i18n[currentLang];
+        const photo = (dbData.playerPhotos && dbData.playerPhotos[name]) || DEFAULT_AVATAR;
+        const completed = getCompletedLevelsForPlayer(name, dbData.levels || []);
+
+        const avatarImg = document.getElementById("detailPlayerAvatar");
+        avatarImg.src = photo;
+        avatarImg.onerror = () => { avatarImg.src = DEFAULT_AVATAR; };
+
+        document.getElementById("detailPlayerName").innerText = name;
+        document.getElementById("detailPlayerMeta").innerText = `#${rankPosition} • ${points} pts`;
+        document.getElementById("detailCompletedTitle").innerText = `${t.completedLevelsTitle} (${completed.length})`;
+
+        const listBox = document.getElementById("detailCompletedLevels");
+        if (!completed.length) {
+            listBox.innerHTML = `<p style="margin:6px 0; color:var(--text-muted); font-size:0.85rem;">${t.noCompletedLevels}</p>`;
+        } else {
+            listBox.innerHTML = completed.map((item) => `
+                <div class="completed-item">
+                    <span><strong style="color:var(--accent);">#${item.rank}</strong> ${item.name}</span>
+                    <span class="completed-tag">${item.role}</span>
+                </div>
+            `).join("");
+        }
+
+        openModal("playerDetailModal");
+    }
+
     function refreshUI() {
         const t = i18n[currentLang];
         const isAdmin = localStorage.getItem("gd_is_admin") === "true";
@@ -734,16 +995,11 @@
         document.getElementById("m-player-photo-title").innerText = t.changePhotoTitle;
         document.getElementById("m-player-photo-label").innerText = t.newPhotoLabel;
         document.getElementById("m-player-photo-save").innerText = t.savePhoto;
+        document.getElementById("m-add-verifier-label").innerText = t.verifierLabel;
+        document.getElementById("m-edit-verifier-label").innerText = t.verifierLabel;
 
-        const players = getPlayersFromLevels(dbData.levels || []);
-        const dl = document.getElementById("playersDatalist");
-        dl.innerHTML = "";
-        players.forEach((p) => {
-            const opt = document.createElement("option");
-            opt.value = p.name;
-            dl.appendChild(opt);
-        });
-
+        populateVerifierPickers("add");
+        populateVerifierPickers("edit");
         renderLists();
     }
 
@@ -803,12 +1059,18 @@
         playersEl.innerHTML = players.length ? "" : `<p style="text-align:center; color:var(--text-muted);">${t.noPlayers}</p>`;
 
         players.forEach((p, idx) => {
-            const photo = (dbData.playerPhotos && dbData.playerPhotos[p.name]) || "https://via.placeholder.com/48";
+            const photo = (dbData.playerPhotos && dbData.playerPhotos[p.name]) || DEFAULT_AVATAR;
+            const encoded = encodeURIComponent(p.name);
             const row = document.createElement("div");
             row.className = "player-card";
+            row.onclick = (e) => {
+                if (!e.target.closest("button")) {
+                    openPlayerDetail(encoded, idx + 1, p.points);
+                }
+            };
             row.innerHTML = `
                 <div class="player-rank">#${idx + 1}</div>
-                <img src="${photo}" class="player-avatar" onerror="this.src='https://via.placeholder.com/48'">
+                <img src="${photo}" class="player-avatar" onerror="this.src='${DEFAULT_AVATAR}'">
                 <div class="player-info">
                     <h3 class="player-name">${p.name}</h3>
                     <p class="player-details">${p.points} pts</p>
@@ -816,8 +1078,8 @@
                 <div class="player-points">${p.points} pts</div>
                 ${isAdmin ? `
                     <div class="player-actions">
-                        <button type="button" class="btn btn-edit" onclick="openEditPlayerPhoto('${encodeURIComponent(p.name)}')">${t.edit}</button>
-                        <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="deletePlayerTwice('${encodeURIComponent(p.name)}')">${t.del}</button>
+                        <button type="button" class="btn btn-edit" onclick="event.stopPropagation(); openEditPlayerPhoto('${encoded}')">${t.edit}</button>
+                        <button type="button" class="btn btn-danger" style="padding:6px 12px; font-size:0.85rem;" onclick="event.stopPropagation(); deletePlayerTwice('${encoded}')">${t.del}</button>
                     </div>
                 ` : ""}
             `;
@@ -945,6 +1207,7 @@
         document.getElementById("editLvlRank").value = lvl.rank;
         document.getElementById("editLvlYoutube").value = lvl.youtubeUrl;
         document.getElementById("editLvlNongSelect").value = lvl.usesNong ? "yes" : "no";
+        populateVerifierPickers("edit");
         openModal("editLevelModal");
     }
 
