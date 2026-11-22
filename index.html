@@ -597,6 +597,18 @@
             <input type="text" id="lvlId" placeholder="GD Level ID" required>
             <input type="number" id="lvlRank" placeholder="Rank (Ex: 1)" required>
             <input type="url" id="lvlYoutube" placeholder="YouTube URL" required>
+
+            <label id="m-add-img-source-label" style="font-size:0.88rem; color:#ccc;">Level image</label>
+            <select id="lvlImageSourceSelect" onchange="toggleLevelImageSourceUI('add')">
+                <option value="youtube" id="opt-add-img-yt">YouTube link</option>
+                <option value="file" id="opt-add-img-file">File</option>
+            </select>
+
+            <div id="addLevelFileBox" class="edit-photo-box" style="display:none;">
+                <label id="m-add-file-label" style="font-size:0.86rem; color:#ccc; display:block; margin-bottom:6px;">Upload image file:</label>
+                <input type="file" id="addLvlPhotoFile" accept="image/*" style="margin-bottom:0;" onchange="handleAddPhotoFileChange(event)">
+            </div>
+
             <label id="m-add-nong">Uses NONG song?</label>
             <select id="lvlNongSelect">
                 <option value="no" id="opt-nong-no">No</option>
@@ -632,8 +644,14 @@
             <input type="number" id="editLvlRank" required>
             <input type="url" id="editLvlYoutube" oninput="updateEditPreview()" required>
 
-            <div class="edit-photo-box">
-                <label id="m-edit-photo-label" style="font-size:0.88rem; color:#ccc; display:block; margin-bottom:6px;">Level Photo / Thumbnail (optional override):</label>
+            <label id="m-edit-img-source-label" style="font-size:0.88rem; color:#ccc;">Level image</label>
+            <select id="editLvlImageSourceSelect" onchange="toggleLevelImageSourceUI('edit')">
+                <option value="youtube" id="opt-edit-img-yt">YouTube link</option>
+                <option value="file" id="opt-edit-img-file">File</option>
+            </select>
+
+            <div id="editLevelFileBox" class="edit-photo-box" style="display:none;">
+                <label id="m-edit-photo-label" style="font-size:0.88rem; color:#ccc; display:block; margin-bottom:6px;">Level Photo / Thumbnail:</label>
                 <img id="editLvlPhotoPreview" src="" class="edit-photo-preview" alt="Level Preview">
                 <input type="file" id="editLvlPhotoFile" accept="image/*" style="margin-bottom:8px;" onchange="handleEditPhotoFileChange(event)">
                 <button type="button" class="btn-secondary" id="clearCustomThumbBtn" onclick="clearCustomLevelThumb()">Use YouTube Thumbnail</button>
@@ -657,7 +675,7 @@
             <input type="hidden" id="editPlayerNameKey">
             <p id="editPlayerNameDisplay" style="margin:0 0 12px 0; font-weight:bold;"></p>
             <label id="m-player-photo-label">New Photo:</label>
-            <input type="file" id="playerPhotoFile" accept="image/*" required>
+            <input type="file" id="playerPhotoFile" accept="image/*" onchange="handlePlayerPhotoFileChange(event)" required>
             <button type="submit" class="btn" id="m-player-photo-save" style="width:100%;">Save Photo</button>
         </form>
     </div>
@@ -706,6 +724,7 @@
     const MASTER_KEY = "$2a$10$dtvPP5l9uDR5mU9t4wLGSuzZAfDsw.HrD/G0wW0mXruYItprbBDC6";
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
     const ADMIN_PASSWORD = "admin";
+    const MAX_IMAGE_BYTES = 30 * 1024;
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="#1e242b"/><circle cx="60" cy="46" r="22" fill="#4f6d8a"/><ellipse cx="60" cy="96" rx="34" ry="22" fill="#4f6d8a"/></svg>`);
 
     let dbData = { levels: [], discordUrl: "", tiktokUrl: "", playerPhotos: {} };
@@ -713,6 +732,7 @@
     let currentLang = localStorage.getItem("gd_lang") || "en";
     let isHorizontalView = false;
     let selectedLevelObj = null;
+    let addPendingCustomThumb = "";
     let editPendingCustomThumb = "";
 
     const i18n = {
@@ -729,8 +749,13 @@
             savePhoto: "Save Photo",
             verifierLabel: "Verifier (pick existing or type new)",
             quickPickPlaceholder: "-- Quick pick player --",
-            editPhotoLabel: "Level Photo / Thumbnail (optional override):",
+            levelImageLabel: "Level image",
+            imgSourceYoutube: "YouTube link",
+            imgSourceFile: "File",
+            addFileLabel: "Upload image file:",
+            editPhotoLabel: "Level Photo / Thumbnail:",
             useYtThumbBtn: "Use YouTube Thumbnail",
+            imageOver30Kb: (kb) => `Warning: This image weighs ${kb} KB (over 30 KB).\n\nAviso: Esta imagen pesa ${kb} KB (más de 30 KB).`,
             completedLevelsTitle: "Completed Levels",
             noCompletedLevels: "No completed levels recorded yet.",
             roleVerifier: "Verifier",
@@ -754,8 +779,13 @@
             savePhoto: "Guardar Foto",
             verifierLabel: "Verificador (elige uno existente o escribe uno nuevo)",
             quickPickPlaceholder: "-- Selección rápida de player --",
-            editPhotoLabel: "Foto / Miniatura del Nivel (opcional para reemplazar):",
+            levelImageLabel: "Imagen del nivel",
+            imgSourceYoutube: "Link de YouTube",
+            imgSourceFile: "Archivo",
+            addFileLabel: "Subir archivo de imagen:",
+            editPhotoLabel: "Foto / Miniatura del Nivel:",
             useYtThumbBtn: "Usar miniatura de YouTube",
+            imageOver30Kb: (kb) => `Aviso: Esta imagen pesa ${kb} KB (más de 30 KB).\n\nWarning: This image weighs ${kb} KB (over 30 KB).`,
             completedLevelsTitle: "Niveles completados",
             noCompletedLevels: "Aún no tiene niveles completados registrados.",
             roleVerifier: "Verificador",
@@ -796,7 +826,45 @@
     function openModal(id) { document.getElementById(id).style.display = "flex"; }
     function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
+    function checkImageSize30Kb(file) {
+        if (!file) return;
+        if (file.size > MAX_IMAGE_BYTES) {
+            const kb = (file.size / 1024).toFixed(1);
+            alert(i18n[currentLang].imageOver30Kb(kb));
+        }
+    }
+
+    function toggleLevelImageSourceUI(mode) {
+        const isAdd = mode === "add";
+        const selectEl = document.getElementById(isAdd ? "lvlImageSourceSelect" : "editLvlImageSourceSelect");
+        const boxEl = document.getElementById(isAdd ? "addLevelFileBox" : "editLevelFileBox");
+        if (!selectEl || !boxEl) return;
+
+        const useFile = selectEl.value === "file";
+        boxEl.style.display = useFile ? "block" : "none";
+
+        if (!useFile) {
+            if (isAdd) {
+                addPendingCustomThumb = "";
+                const addFileInput = document.getElementById("addLvlPhotoFile");
+                if (addFileInput) addFileInput.value = "";
+            } else {
+                editPendingCustomThumb = "";
+                const editFileInput = document.getElementById("editLvlPhotoFile");
+                if (editFileInput) editFileInput.value = "";
+                updateEditPreview();
+            }
+        } else if (!isAdd) {
+            updateEditPreview();
+        }
+    }
+
     function openAddLevelModal() {
+        addPendingCustomThumb = "";
+        const addForm = document.querySelector("#addLevelModal form");
+        if (addForm) addForm.reset();
+        document.getElementById("lvlImageSourceSelect").value = "youtube";
+        toggleLevelImageSourceUI("add");
         populateVerifierPickers("add");
         openModal("addLevelModal");
     }
@@ -1041,6 +1109,13 @@
         document.getElementById("m-player-photo-save").innerText = t.savePhoto;
         document.getElementById("m-add-verifier-label").innerText = t.verifierLabel;
         document.getElementById("m-edit-verifier-label").innerText = t.verifierLabel;
+        document.getElementById("m-add-img-source-label").innerText = t.levelImageLabel;
+        document.getElementById("opt-add-img-yt").innerText = t.imgSourceYoutube;
+        document.getElementById("opt-add-img-file").innerText = t.imgSourceFile;
+        document.getElementById("m-add-file-label").innerText = t.addFileLabel;
+        document.getElementById("m-edit-img-source-label").innerText = t.levelImageLabel;
+        document.getElementById("opt-edit-img-yt").innerText = t.imgSourceYoutube;
+        document.getElementById("opt-edit-img-file").innerText = t.imgSourceFile;
         document.getElementById("m-edit-photo-label").innerText = t.editPhotoLabel;
         document.getElementById("clearCustomThumbBtn").innerText = t.useYtThumbBtn;
 
@@ -1132,6 +1207,12 @@
         });
     }
 
+    function handlePlayerPhotoFileChange(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        checkImageSize30Kb(file);
+    }
+
     function openEditPlayerPhoto(encodedName) {
         if (localStorage.getItem("gd_is_admin") !== "true") return;
         const name = decodeURIComponent(encodedName);
@@ -1148,6 +1229,7 @@
         const file = document.getElementById("playerPhotoFile").files[0];
         if (!name || !file) return;
 
+        checkImageSize30Kb(file);
         const base64 = await fileToBase64(file);
         if (!base64) return;
 
@@ -1218,8 +1300,24 @@
         if (await saveCloudData()) { closeModal("tiktokModal"); refreshUI(); }
     }
 
+    async function handleAddPhotoFileChange(e) {
+        const file = e.target.files[0];
+        if (!file) {
+            addPendingCustomThumb = "";
+            return;
+        }
+        checkImageSize30Kb(file);
+        const base64 = await fileToBase64(file);
+        if (base64) {
+            addPendingCustomThumb = base64;
+        }
+    }
+
     async function handleAddNewLevel(e) {
         e.preventDefault();
+        const imgSource = document.getElementById("lvlImageSourceSelect").value;
+        const customThumbToSave = imgSource === "file" ? (addPendingCustomThumb || "") : "";
+
         const newLvl = {
             id: "lvl_" + Date.now(),
             name: document.getElementById("lvlName").value.trim(),
@@ -1228,13 +1326,16 @@
             levelId: document.getElementById("lvlId").value.trim(),
             rank: Number(document.getElementById("lvlRank").value),
             youtubeUrl: document.getElementById("lvlYoutube").value.trim(),
-            customThumb: "",
+            customThumb: customThumbToSave,
             usesNong: document.getElementById("lvlNongSelect").value === "yes",
             victors: []
         };
         dbData.levels.push(newLvl);
         if (await saveCloudData()) {
+            addPendingCustomThumb = "";
             e.target.reset();
+            document.getElementById("lvlImageSourceSelect").value = "youtube";
+            toggleLevelImageSourceUI("add");
             closeModal("addLevelModal");
             refreshUI();
         } else {
@@ -1256,6 +1357,7 @@
     async function handleEditPhotoFileChange(e) {
         const file = e.target.files[0];
         if (!file) return;
+        checkImageSize30Kb(file);
         const base64 = await fileToBase64(file);
         if (base64) {
             editPendingCustomThumb = base64;
@@ -1265,9 +1367,10 @@
 
     function clearCustomLevelThumb() {
         editPendingCustomThumb = "";
+        document.getElementById("editLvlImageSourceSelect").value = "youtube";
         const fileInput = document.getElementById("editLvlPhotoFile");
         if (fileInput) fileInput.value = "";
-        updateEditPreview();
+        toggleLevelImageSourceUI("edit");
     }
 
     function openEditLevel(id) {
@@ -1283,6 +1386,8 @@
         document.getElementById("editLvlNongSelect").value = lvl.usesNong ? "yes" : "no";
         document.getElementById("editLvlPhotoFile").value = "";
         editPendingCustomThumb = lvl.customThumb || "";
+        document.getElementById("editLvlImageSourceSelect").value = editPendingCustomThumb ? "file" : "youtube";
+        toggleLevelImageSourceUI("edit");
         updateEditPreview();
         populateVerifierPickers("edit");
         openModal("editLevelModal");
@@ -1294,6 +1399,7 @@
         const lvl = dbData.levels.find((x) => x.id === id);
         if (!lvl) return;
 
+        const imgSource = document.getElementById("editLvlImageSourceSelect").value;
         const prevSnapshot = { ...lvl };
         lvl.name = document.getElementById("editLvlName").value.trim();
         lvl.creator = document.getElementById("editLvlCreator").value.trim();
@@ -1301,7 +1407,7 @@
         lvl.levelId = document.getElementById("editLvlCodeId").value.trim();
         lvl.rank = Number(document.getElementById("editLvlRank").value);
         lvl.youtubeUrl = document.getElementById("editLvlYoutube").value.trim();
-        lvl.customThumb = editPendingCustomThumb || "";
+        lvl.customThumb = imgSource === "file" ? (editPendingCustomThumb || "") : "";
         lvl.usesNong = document.getElementById("editLvlNongSelect").value === "yes";
 
         if (await saveCloudData()) {
