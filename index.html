@@ -134,6 +134,7 @@
         .btn-danger { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
         .btn-edit { background: linear-gradient(135deg, #f7b733, #f39c12); color: #000; padding: 6px 12px; font-size: 0.85rem; }
         .btn-copy { background: #222; color: var(--accent); border: 1px solid var(--accent); padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; cursor: pointer; }
+        .btn-secondary { background: #242424; color: #ddd; border: 1px solid #444; padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; }
 
         .container {
             max-width: 900px;
@@ -368,6 +369,24 @@
         .verifier-chip:hover {
             border-color: var(--accent);
             color: var(--accent);
+        }
+
+        .edit-photo-box {
+            background: #121212;
+            border: 1px solid #2b2b2b;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 14px;
+        }
+
+        .edit-photo-preview {
+            width: 100%;
+            max-height: 140px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: block;
+            background: #080808;
         }
 
         .modal {
@@ -611,7 +630,15 @@
 
             <input type="text" id="editLvlCodeId" required>
             <input type="number" id="editLvlRank" required>
-            <input type="url" id="editLvlYoutube" required>
+            <input type="url" id="editLvlYoutube" oninput="updateEditPreview()" required>
+
+            <div class="edit-photo-box">
+                <label id="m-edit-photo-label" style="font-size:0.88rem; color:#ccc; display:block; margin-bottom:6px;">Level Photo / Thumbnail (optional override):</label>
+                <img id="editLvlPhotoPreview" src="" class="edit-photo-preview" alt="Level Preview">
+                <input type="file" id="editLvlPhotoFile" accept="image/*" style="margin-bottom:8px;" onchange="handleEditPhotoFileChange(event)">
+                <button type="button" class="btn-secondary" id="clearCustomThumbBtn" onclick="clearCustomLevelThumb()">Use YouTube Thumbnail</button>
+            </div>
+
             <select id="editLvlNongSelect">
                 <option value="no" id="edit-opt-nong-no">No</option>
                 <option value="yes" id="edit-opt-nong-yes">Yes</option>
@@ -686,6 +713,7 @@
     let currentLang = localStorage.getItem("gd_lang") || "en";
     let isHorizontalView = false;
     let selectedLevelObj = null;
+    let editPendingCustomThumb = "";
 
     const i18n = {
         en: {
@@ -701,10 +729,15 @@
             savePhoto: "Save Photo",
             verifierLabel: "Verifier (pick existing or type new)",
             quickPickPlaceholder: "-- Quick pick player --",
+            editPhotoLabel: "Level Photo / Thumbnail (optional override):",
+            useYtThumbBtn: "Use YouTube Thumbnail",
             completedLevelsTitle: "Completed Levels",
             noCompletedLevels: "No completed levels recorded yet.",
             roleVerifier: "Verifier",
             roleVictor: "Victor",
+            delLvlConfirm1: (name) => `Delete level "${name}"? (Confirmation 1 of 3)`,
+            delLvlConfirm2: (name) => `Are you sure you want to delete "${name}"? Points and records will be removed. (Confirmation 2 of 3)`,
+            delLvlConfirm3: (name) => `FINAL WARNING: Permanently delete "${name}" right now? (Confirmation 3 of 3)`,
             delConfirm1: (name) => `Delete ${name} from players and level records? (Step 1/2)`,
             delConfirm2: (name) => `Are you 100% sure you want to permanently remove ${name}? (Step 2/2)`
         },
@@ -721,10 +754,15 @@
             savePhoto: "Guardar Foto",
             verifierLabel: "Verificador (elige uno existente o escribe uno nuevo)",
             quickPickPlaceholder: "-- Selección rápida de player --",
+            editPhotoLabel: "Foto / Miniatura del Nivel (opcional para reemplazar):",
+            useYtThumbBtn: "Usar miniatura de YouTube",
             completedLevelsTitle: "Niveles completados",
             noCompletedLevels: "Aún no tiene niveles completados registrados.",
             roleVerifier: "Verificador",
             roleVictor: "Victor",
+            delLvlConfirm1: (name) => `¿Eliminar el nivel "${name}"? (Confirmación 1 de 3)`,
+            delLvlConfirm2: (name) => `¿Seguro que quieres borrar "${name}"? Se perderán sus datos en la lista. (Confirmación 2 de 3)`,
+            delLvlConfirm3: (name) => `ÚLTIMA CONFIRMACIÓN: ¿Borrar permanentemente "${name}" ahora mismo? (Confirmación 3 de 3)`,
             delConfirm1: (name) => `¿Eliminar a ${name} de los players y registros de niveles? (Paso 1/2)`,
             delConfirm2: (name) => `¿Estás seguro de borrar permanentemente a ${name}? (Paso 2/2)`
         }
@@ -803,6 +841,12 @@
         if (!url) return "";
         const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
         return m ? m[1] : "";
+    }
+
+    function getLevelThumbnail(lvl) {
+        if (lvl?.customThumb) return lvl.customThumb;
+        const ytId = extractYouTubeId(lvl?.youtubeUrl);
+        return ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : "";
     }
 
     function fileToBase64(file) {
@@ -997,6 +1041,8 @@
         document.getElementById("m-player-photo-save").innerText = t.savePhoto;
         document.getElementById("m-add-verifier-label").innerText = t.verifierLabel;
         document.getElementById("m-edit-verifier-label").innerText = t.verifierLabel;
+        document.getElementById("m-edit-photo-label").innerText = t.editPhotoLabel;
+        document.getElementById("clearCustomThumbBtn").innerText = t.useYtThumbBtn;
 
         populateVerifierPickers("add");
         populateVerifierPickers("edit");
@@ -1030,8 +1076,7 @@
 
         levels.forEach((lvl) => {
             const pts = Math.max(10, Math.round(350 * Math.pow(0.95, lvl.rank - 1)));
-            const ytId = extractYouTubeId(lvl.youtubeUrl);
-            const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : "";
+            const thumb = getLevelThumbnail(lvl);
             const card = document.createElement("div");
             card.className = "level-card";
             card.style.setProperty("--card-bg-img", `url('${thumb}')`);
@@ -1183,6 +1228,7 @@
             levelId: document.getElementById("lvlId").value.trim(),
             rank: Number(document.getElementById("lvlRank").value),
             youtubeUrl: document.getElementById("lvlYoutube").value.trim(),
+            customThumb: "",
             usesNong: document.getElementById("lvlNongSelect").value === "yes",
             victors: []
         };
@@ -1196,6 +1242,34 @@
         }
     }
 
+    function updateEditPreview() {
+        const previewEl = document.getElementById("editLvlPhotoPreview");
+        if (!previewEl) return;
+        if (editPendingCustomThumb) {
+            previewEl.src = editPendingCustomThumb;
+            return;
+        }
+        const ytId = extractYouTubeId(document.getElementById("editLvlYoutube").value.trim());
+        previewEl.src = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : "";
+    }
+
+    async function handleEditPhotoFileChange(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const base64 = await fileToBase64(file);
+        if (base64) {
+            editPendingCustomThumb = base64;
+            updateEditPreview();
+        }
+    }
+
+    function clearCustomLevelThumb() {
+        editPendingCustomThumb = "";
+        const fileInput = document.getElementById("editLvlPhotoFile");
+        if (fileInput) fileInput.value = "";
+        updateEditPreview();
+    }
+
     function openEditLevel(id) {
         const lvl = dbData.levels.find((x) => x.id === id);
         if (!lvl) return;
@@ -1207,6 +1281,9 @@
         document.getElementById("editLvlRank").value = lvl.rank;
         document.getElementById("editLvlYoutube").value = lvl.youtubeUrl;
         document.getElementById("editLvlNongSelect").value = lvl.usesNong ? "yes" : "no";
+        document.getElementById("editLvlPhotoFile").value = "";
+        editPendingCustomThumb = lvl.customThumb || "";
+        updateEditPreview();
         populateVerifierPickers("edit");
         openModal("editLevelModal");
     }
@@ -1216,17 +1293,34 @@
         const id = document.getElementById("editLvlIdKey").value;
         const lvl = dbData.levels.find((x) => x.id === id);
         if (!lvl) return;
+
+        const prevSnapshot = { ...lvl };
         lvl.name = document.getElementById("editLvlName").value.trim();
         lvl.creator = document.getElementById("editLvlCreator").value.trim();
         lvl.verifier = document.getElementById("editLvlVerifier").value.trim();
         lvl.levelId = document.getElementById("editLvlCodeId").value.trim();
         lvl.rank = Number(document.getElementById("editLvlRank").value);
         lvl.youtubeUrl = document.getElementById("editLvlYoutube").value.trim();
+        lvl.customThumb = editPendingCustomThumb || "";
         lvl.usesNong = document.getElementById("editLvlNongSelect").value === "yes";
-        if (await saveCloudData()) { closeModal("editLevelModal"); refreshUI(); }
+
+        if (await saveCloudData()) {
+            closeModal("editLevelModal");
+            refreshUI();
+        } else {
+            Object.assign(lvl, prevSnapshot);
+        }
     }
 
     async function deleteLevel(id) {
+        const lvl = (dbData.levels || []).find((x) => x.id === id);
+        if (!lvl) return;
+        const t = i18n[currentLang];
+
+        if (!confirm(t.delLvlConfirm1(lvl.name))) return;
+        if (!confirm(t.delLvlConfirm2(lvl.name))) return;
+        if (!confirm(t.delLvlConfirm3(lvl.name))) return;
+
         const prev = [...dbData.levels];
         dbData.levels = dbData.levels.filter((x) => x.id !== id);
         if (await saveCloudData()) { refreshUI(); } else { dbData.levels = prev; }
@@ -1235,10 +1329,11 @@
     function openLevelDetail(lvl, thumb) {
         selectedLevelObj = lvl;
         const isAdmin = localStorage.getItem("gd_is_admin") === "true";
+        const resolvedThumb = thumb || getLevelThumbnail(lvl);
         document.getElementById("modalLevelTitle").innerText = lvl.name;
         document.getElementById("modalLevelCreators").innerHTML = `${i18n[currentLang].by} ${lvl.creator} • ${i18n[currentLang].verifiedBy} ${lvl.verifier}`;
         document.getElementById("modalYoutubeAnchor").href = lvl.youtubeUrl || "#";
-        document.getElementById("modalYoutubeThumbImg").src = thumb || "https://via.placeholder.com/460x190";
+        document.getElementById("modalYoutubeThumbImg").src = resolvedThumb || "https://via.placeholder.com/460x190";
         document.getElementById("modalLevelIdText").innerText = `ID: ${lvl.levelId}`;
         document.getElementById("addVictorBtn").style.display = isAdmin ? "inline-block" : "none";
         renderVictors();
